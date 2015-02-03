@@ -1,33 +1,40 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
-class User(models.Model):
-    def profile_file(self, filename):
-        return 'static/' + str(self.pk) + '_' + filename
+class ProfessorAccountManager(BaseUserManager):
+    def create_user(self, email, password=None, **kwargs):
+        if not email:
+            raise ValueError('No email supplied')
 
-    # GT username
-    username = models.TextField(max_length=64, primary_key=True, blank=False, unique=True)
+        account = self.model(
+            email=self.normalize_email(email),
+        )
 
-    # Full name
-    name = models.TextField(max_length=100, blank=False)
+        account.set_password(password)
+        account.save()
 
-    # Image URL
-    profile_img = models.FileField(upload_to=profile_file, blank=True)
+        return account
 
-    # Email
-    email = models.EmailField()
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['username', 'name', 'profile_img']
-        abstract = True
-
-class Professor(User):
+class Professor(AbstractBaseUser):
+    email = models.EmailField(primary_key=True, unique=True)
     dept = models.CharField(max_length=8, blank=False)
 
-class Student(User):
+    objects = ProfessorAccountManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'dept']
+
+    def __unicode__(self):
+        return self.email + ' ' + self.dept
+
+class Student(AbstractBaseUser):
+    def profile_file(self, filename):
+        return 'static/' + str(self.name.replace(' ', '_')) + '_' + filename
+
+    # TODO CHange
+    objects = ProfessorAccountManager()
+
     # Linkedin
     linkedin = models.URLField()
 
@@ -47,8 +54,17 @@ class Student(User):
 
     # Interests (AI, Web Development, Machine Learning, Databases, etc...) TODO
     # interests = ...
+
+    # Full name
+    name = models.TextField(max_length=100, blank=False)
+
+    # Image URL
+    profile_img = models.FileField(upload_to=profile_file, blank=True)
+
+    # Email
+    email = models.EmailField(primary_key=True, unique=True)
     def __unicode__(self):
-        return self.username
+        return self.email
 
 class Course(models.Model):
     # Dept
@@ -84,7 +100,7 @@ class Group(models.Model):
     name = models.CharField(max_length=24, blank=False)
 
     # Student owner
-    owner = models.ForeignKey(Student, to_field='username', related_name='groups')
+    owner = models.ForeignKey(Student, to_field='email', related_name='groups')
 
     # Description
     # For example, "Hi, we looking to do web development on blah..."

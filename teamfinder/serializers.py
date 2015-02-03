@@ -5,6 +5,31 @@ from rest_framework import serializers
 
 from teamfinder.models import *
 
+class ProfessorAccountSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True)
+    confirm_password = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = Professor
+        fields = ('email', 'dept', 'password', 'confirm_password')
+
+    def create(self, validated_data):
+        return Professor.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.email = validated_data.get('email', instance.email)
+        instance.save()
+        password = validated_data.get('password', None)
+        confirm_password = validated_data.get('confirm_password', None)
+
+        if password == confirm_password:
+            instance.set_password(password)
+            instance.save()
+            # update_session_auth_hash(self.context.get('request'), instance)
+
+        return instance
+
+
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
