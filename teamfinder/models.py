@@ -26,12 +26,12 @@ class User(AbstractBaseUser):
     )
 
     email = models.EmailField(primary_key=True, unique=True)
-    dept = models.CharField(max_length=8, blank=False)
+    dept = models.CharField(max_length=8, blank=True)
     objects = AccountManager()
     user_type = models.CharField(max_length=24, blank=False, choices=USER_TYPE_CHOICES)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'dept', 'user_type']
+    REQUIRED_FIELDS = ['username', 'user_type']
 
     def profile_file(self, filename):
         return 'static/' + str(self.name.replace(' ', '_')) + '_' + filename
@@ -110,9 +110,6 @@ class Group(models.Model):
 
     class Meta:
         ordering = ['name']
-
-
-
 
 # Student enrollment in class
 class Enrollment(models.Model):

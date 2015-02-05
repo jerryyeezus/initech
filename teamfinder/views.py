@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from teamfinder.models import Group, User, Course
-from teamfinder.serializers import GroupViewSerializer, StudentSerializer, GroupAddSerializer, ProfessorAccountSerializer, CourseAddSerializer
+from teamfinder.serializers import GroupViewSerializer, StudentSerializer, GroupAddSerializer, UserAccountSerializer, CourseAddSerializer
 
 # Return list for a given professor
 class CourseAdd(generics.ListCreateAPIView):
@@ -23,20 +23,6 @@ class CourseList(generics.ListAPIView):
     serializer_class = CourseAddSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('course_professor', )
-    # Retrieve, update or delete a snippet instance.
-    # """
-    # def get_object(self, pk):
-    #     try:
-    #         return Course.objects.filter(course_professor=pk)
-    #     except Course.DoesNotExist:
-    #         raise Http404
-    #
-    # def get(self, request, pk, format=None):
-    #     courses = self.get_object(pk)
-    #     serializer = CourseAddSerializer(courses)
-    #     asdf = serializer.data
-    #     return Response(serializer.data)
-
 
 class StudentList(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -59,7 +45,7 @@ class GroupAdd(APIView):
 class ProfessorAccountViewSet(viewsets.ModelViewSet):
     lookup_field = 'email'
     queryset = User.objects.all()
-    serializer_class = ProfessorAccountSerializer
+    serializer_class = UserAccountSerializer
 
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:

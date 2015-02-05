@@ -5,9 +5,7 @@ from rest_framework import serializers
 
 from teamfinder.models import *
 
-
-# TODO change to UserAccoutnSeri
-class ProfessorAccountSerializer(serializers.ModelSerializer):
+class UserAccountSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
 
@@ -35,8 +33,7 @@ class ProfessorAccountSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'name', 'profile_img')
-        # fields = ('id', 'name')
+        fields = ('email', 'name', 'profile_img')
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)
