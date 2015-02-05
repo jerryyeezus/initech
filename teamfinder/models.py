@@ -75,9 +75,6 @@ class Course(models.Model):
     # Course ID
     course_id = models.IntegerField(blank=False)
 
-    # Course CRM
-    course_crm = str(str(course_dept) + ' ' + str(course_id))
-
     # Course name
     course_name = models.CharField(blank=False, max_length=64)
 
