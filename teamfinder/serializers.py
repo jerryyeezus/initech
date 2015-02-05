@@ -57,7 +57,7 @@ class CourseAddSerializer(serializers.ModelSerializer):
         return Course.objects.create(**validated_data)
     class Meta:
         model = Course
-        fields = ('course_dept', 'course_id', 'course_crm', 'course_name', 'course_professor')
+        fields = ('course_dept', 'course_id', 'course_name', 'course_professor')
 
 class GroupAddSerializer(serializers.ModelSerializer):
     owner = serializers.CharField(required=True)
