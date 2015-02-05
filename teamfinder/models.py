@@ -1,33 +1,43 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
+INSTRUCTOR = 'INSTRUCTOR'
+STUDENT = 'STUDENT'
 
-class User(models.Model):
-    def profile_file(self, filename):
-        return 'static/' + str(self.pk) + '_' + filename
+class AccountManager(BaseUserManager):
+    def create_user(self, email, user_type, password=None, **kwargs):
+        if not email:
+            raise ValueError('No email supplied')
 
-    # GT username
-    username = models.TextField(max_length=64, primary_key=True, blank=False, unique=True)
+        account = self.model(
+            email=self.normalize_email(email),
+            user_type=user_type
+        )
 
-    # Full name
-    name = models.TextField(max_length=100, blank=False)
+        account.set_password(password)
+        account.save()
 
-    # Image URL
-    profile_img = models.FileField(upload_to=profile_file, blank=True)
+        return account
 
-    # Email
-    email = models.EmailField()
+class User(AbstractBaseUser):
+    USER_TYPE_CHOICES = (
+        (INSTRUCTOR, 'Instructor'),
+        (STUDENT, 'Student')
+    )
 
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['username', 'name', 'profile_img']
-        abstract = True
-
-class Professor(User):
+    email = models.EmailField(primary_key=True, unique=True)
     dept = models.CharField(max_length=8, blank=False)
+    objects = AccountManager()
+    user_type = models.CharField(max_length=24, blank=False, choices=USER_TYPE_CHOICES)
 
-class Student(User):
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'dept', 'user_type']
+
+    def profile_file(self, filename):
+        return 'static/' + str(self.name.replace(' ', '_')) + '_' + filename
+
+    # Student fields
+
     # Linkedin
     linkedin = models.URLField()
 
@@ -35,6 +45,7 @@ class Student(User):
     github = models.URLField()
 
     # Project Preference (ordered list)
+    # TODO
 
     # Biography
     bio = models.TextField()
@@ -47,8 +58,15 @@ class Student(User):
 
     # Interests (AI, Web Development, Machine Learning, Databases, etc...) TODO
     # interests = ...
+
+    # Full name
+    name = models.TextField(max_length=100, blank=False)
+
+    # Image URL
+    profile_img = models.FileField(upload_to=profile_file, blank=True)
+
     def __unicode__(self):
-        return self.username
+        return self.email
 
 class Course(models.Model):
     # Dept
@@ -58,13 +76,13 @@ class Course(models.Model):
     course_id = models.IntegerField(blank=False)
 
     # Course CRM
-    course_crm = str(course_dept) + ' ' + str(course_id)
+    course_crm = str(str(course_dept) + ' ' + str(course_id))
 
     # Course name
     course_name = models.CharField(blank=False, max_length=64)
 
     # Professor
-    course_professor = models.ForeignKey(Professor)
+    course_professor = models.ForeignKey(User)
 
 class Project(models.Model):
     # Category (Fill in via clustering methods)
@@ -84,7 +102,7 @@ class Group(models.Model):
     name = models.CharField(max_length=24, blank=False)
 
     # Student owner
-    owner = models.ForeignKey(Student, to_field='username', related_name='groups')
+    owner = models.ForeignKey(User, to_field='email', related_name='groups')
 
     # Description
     # For example, "Hi, we looking to do web development on blah..."
@@ -101,17 +119,17 @@ class Group(models.Model):
 
 # Student enrollment in class
 class Enrollment(models.Model):
-    user = models.ForeignKey(Student)
+    user = models.ForeignKey(User)
     course = models.ForeignKey(Course)
 
 # Teacher for class
 class Teaches(models.Model):
-    professor = models.ForeignKey(Professor)
+    professor = models.ForeignKey(User)
     course = models.ForeignKey(Course)
 
 # Member of group
 class Membership(models.Model):
-    member = models.ForeignKey(Student)
+    member = models.ForeignKey(User)
     course = models.ForeignKey(Course)
     group = models.ForeignKey(Group)
     role = models.CharField(max_length=16)  # owner/tentative/confirmed
