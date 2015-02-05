@@ -1,22 +1,49 @@
+from django.http import Http404
 from django.shortcuts import render
 import json
 
 # Create your views here.
-from rest_framework import generics
+from rest_framework import generics, filters
 from django.contrib.auth import authenticate, login, logout
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import permissions, views, viewsets
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from teamfinder.models import Student, Group, Professor
-from teamfinder.serializers import GroupViewSerializer, StudentSerializer, GroupAddSerializer, ProfessorAccountSerializer
+from teamfinder.models import Group, User, Course
+from teamfinder.serializers import GroupViewSerializer, StudentSerializer, GroupAddSerializer, ProfessorAccountSerializer, CourseAddSerializer
+
+# Return list for a given professor
+class CourseAdd(generics.ListCreateAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseAddSerializer
+
+class CourseList(generics.ListAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseAddSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('course_professor', )
+    # Retrieve, update or delete a snippet instance.
+    # """
+    # def get_object(self, pk):
+    #     try:
+    #         return Course.objects.filter(course_professor=pk)
+    #     except Course.DoesNotExist:
+    #         raise Http404
+    #
+    # def get(self, request, pk, format=None):
+    #     courses = self.get_object(pk)
+    #     serializer = CourseAddSerializer(courses)
+    #     asdf = serializer.data
+    #     return Response(serializer.data)
+
 
 class StudentList(generics.ListCreateAPIView):
-    queryset = Student.objects.all()
+    queryset = User.objects.all()
     serializer_class = StudentSerializer
 
 class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Student.objects.all()
+    queryset = User.objects.all()
     serializer_class = StudentSerializer
 
 
@@ -31,20 +58,22 @@ class GroupAdd(APIView):
 
 class ProfessorAccountViewSet(viewsets.ModelViewSet):
     lookup_field = 'email'
-    queryset = Professor.objects.all()
+    queryset = User.objects.all()
     serializer_class = ProfessorAccountSerializer
 
-    # def get_permissions(self):
-    #     if self.request.method in permissions.SAFE_METHODS:
-    #         return (permissions.AllowAny(),)
-    #
-    #     if self.request.method == 'POST':
-    #         return (permissions.AllowAny(),)
-    #
-    #     return (permissions.IsAuthenticated(), IsAccountOwner(),)
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return (permissions.AllowAny(),)
+
+        if self.request.method == 'POST':
+            return (permissions.AllowAny(),)
+
+        # return (permissions.IsAuthenticated(), IsAccountOwner(),)
+        # TODO
+        return False
 
     def list(self, request, *args, **kwargs):
-        queryset = Professor.objects.all()
+        queryset = User.objects.all()
         if queryset.__len__() == 0:
             return Response({
                                 'status': 'No accounts yet',
@@ -58,7 +87,7 @@ class ProfessorAccountViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            Professor.objects.create_user(**serializer.validated_data)
+            User.objects.create_user(**serializer.validated_data)
             return Response(
                 serializer.validated_data, status=status.HTTP_201_CREATED
             )
@@ -92,15 +121,15 @@ class ProfessorLoginView(views.APIView):
                 'status': 'Unauthorized',
                 'message': 'Username/password combination invalid.'
             }, status=status.HTTP_401_UNAUTHORIZED)
-#
-#
-# class LogoutView(views.APIView):
-#     permissions = (permissions.IsAuthenticated,)
-#
-#     def post(self, request, format=None):
-#         logout(request)
-#
-#         return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+
+class LogoutView(views.APIView):
+    permissions = (permissions.IsAuthenticated,)
+
+    def post(self, request, format=None):
+        logout(request)
+
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
 class GroupViewList(generics.ListAPIView):

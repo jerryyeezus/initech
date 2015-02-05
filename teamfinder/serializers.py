@@ -5,16 +5,18 @@ from rest_framework import serializers
 
 from teamfinder.models import *
 
+
+# TODO change to UserAccoutnSeri
 class ProfessorAccountSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
-        model = Professor
-        fields = ('email', 'dept', 'password', 'confirm_password')
+        model = User
+        fields = ('email', 'user_type', 'dept', 'password', 'confirm_password')
 
     def create(self, validated_data):
-        return Professor.objects.create(**validated_data)
+        return User.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         instance.email = validated_data.get('email', instance.email)
@@ -32,12 +34,12 @@ class ProfessorAccountSerializer(serializers.ModelSerializer):
 
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Student
+        model = User
         fields = ('username', 'name', 'profile_img')
         # fields = ('id', 'name')
 
     def create(self, validated_data):
-        return Student.objects.create(**validated_data)
+        return User.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         instance.title = validated_data.get('name', instance.name)
@@ -48,11 +50,20 @@ class GroupViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
 
+class CourseAddSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        course_professor = User.objects.get(pk=self.data.get('course_professor'))
+        validated_data['course_professor'] = course_professor
+        return Course.objects.create(**validated_data)
+    class Meta:
+        model = Course
+        fields = ('course_dept', 'course_id', 'course_crm', 'course_name', 'course_professor')
+
 class GroupAddSerializer(serializers.ModelSerializer):
     owner = serializers.CharField(required=True)
 
     def create(self, validated_data):
-        group_owner = Student.objects.get(pk=self.data.get('owner'))
+        group_owner = User.objects.get(pk=self.data.get('owner'))
         validated_data['owner'] = group_owner
 
         return Group.objects.create(**validated_data)
