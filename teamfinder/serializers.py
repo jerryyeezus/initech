@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 __author__ = 'yee'
 from rest_framework import serializers
 
+import csv
 from teamfinder.models import *
 
 class UserAccountSerializer(serializers.ModelSerializer):
@@ -38,38 +39,39 @@ class StudentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create(**validated_data)
 
-    def update(self, instance, validated_data):
-        instance.title = validated_data.get('name', instance.name)
-        instance.save()
-        return instance
+    # def update(self, instance, validated_data):
+    #     instance.title = validated_data.get('name', instance.name)
+    #     instance.save()
+    #     return instance
 
-class GroupViewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Group
+# class GroupViewSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Group
 
 class CourseSerializer(serializers.ModelSerializer):
+    students = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
     def create(self, validated_data):
-        course_professor = User.objects.get(pk=self.data.get('course_professor'))
-        validated_data['course_professor'] = course_professor
         return Course.objects.create(**validated_data)
+
     class Meta:
         model = Course
-        fields = ('course_dept', 'course_id', 'course_name', 'course_professor')
+        fields = ('csv_import', 'course_dept', 'course_id', 'course_name', 'course_professor', 'students')
 
-class GroupAddSerializer(serializers.ModelSerializer):
-    owner = serializers.CharField(required=True)
-
-    def create(self, validated_data):
-        group_owner = User.objects.get(pk=self.data.get('owner'))
-        validated_data['owner'] = group_owner
-
-        return Group.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        instance.title = validated_data.get('name', instance.name)
-        instance.save()
-        return instance
-
-    class Meta:
-        model = Group
-        fields = ('name', 'description', 'owner')
+# class GroupAddSerializer(serializers.ModelSerializer):
+#     owner = serializers.CharField(required=True)
+#
+#     def create(self, validated_data):
+#         group_owner = User.objects.get(pk=self.data.get('owner'))
+#         validated_data['owner'] = group_owner
+#
+#         return Group.objects.create(**validated_data)
+#
+#     def update(self, instance, validated_data):
+#         instance.title = validated_data.get('name', instance.name)
+#         instance.save()
+#         return instance
+#
+#     class Meta:
+#         model = Group
+#         fields = ('name', 'description', 'owner')

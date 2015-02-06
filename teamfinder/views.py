@@ -3,26 +3,53 @@ from django.shortcuts import render
 import json
 
 # Create your views here.
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import generics, filters
 from django.contrib.auth import authenticate, login, logout
-from rest_framework.permissions import IsAuthenticated
+import StringIO
 from rest_framework import permissions, views, viewsets
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from teamfinder.models import Group, User, Course
-from teamfinder.serializers import GroupViewSerializer, StudentSerializer, GroupAddSerializer, UserAccountSerializer, CourseSerializer
+from teamfinder.models import User, Course
+from teamfinder.serializers import StudentSerializer, UserAccountSerializer, CourseSerializer
+from rest_framework.permissions import BasePermission, SAFE_METHODS
+
+# class CourseAdd(generics.ListCreateAPIView):
+#     queryset = Course.objects.all()
+#     serializer_class = CourseSerializer
+
+class CourseAdd(APIView):
+    def post(self, request):
+        serializer = CourseSerializer(data=request.data)
+        if serializer.is_valid():
+            course = serializer.save()
+            up_file = request.FILES['import_csv']
+            filestream = StringIO.StringIO(up_file.read())
+            for row in filestream.read().splitlines():
+                cols = row.split(',')
+                my_pk = 'STUDENT|' + cols[1]
+                try:
+                    the_user = User.objects.get(pk=my_pk)
+                    course.students.add(the_user)
+                    course.save()
+                except:
+                    # Student not in system yet, add as Placeholder
+                    placeholder = User.objects.create_user(cols[1], 'PLACEHOLDER')
+                    course.students.add(placeholder)
+                    course.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Return list for a given professor
-class CourseAdd(generics.ListCreateAPIView):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
-
 class CourseList(generics.ListAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('course_professor', )
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
+
 
 class StudentList(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -33,13 +60,13 @@ class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = StudentSerializer
 
 
-class GroupAdd(APIView):
-    def post(self, request):
-        serializer = GroupAddSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class GroupAdd(APIView):
+#     def post(self, request):
+#         serializer = GroupAddSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserAccountViewSet(viewsets.ModelViewSet):
@@ -118,7 +145,10 @@ class LogoutView(views.APIView):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
-class GroupViewList(generics.ListAPIView):
-    queryset = Group.objects.all()
-    serializer_class = GroupViewSerializer
+# class GroupViewList(generics.ListAPIView):
+#     queryset = Group.objects.all()
+#     serializer_class = GroupViewSerializer
 
+class AddStudent(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = StudentSerializer
