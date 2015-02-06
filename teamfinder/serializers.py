@@ -47,7 +47,7 @@ class GroupViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
 
-class CourseAddSerializer(serializers.ModelSerializer):
+class CourseSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         course_professor = User.objects.get(pk=self.data.get('course_professor'))
         validated_data['course_professor'] = course_professor

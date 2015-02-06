@@ -11,16 +11,16 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from teamfinder.models import Group, User, Course
-from teamfinder.serializers import GroupViewSerializer, StudentSerializer, GroupAddSerializer, UserAccountSerializer, CourseAddSerializer
+from teamfinder.serializers import GroupViewSerializer, StudentSerializer, GroupAddSerializer, UserAccountSerializer, CourseSerializer
 
 # Return list for a given professor
 class CourseAdd(generics.ListCreateAPIView):
     queryset = Course.objects.all()
-    serializer_class = CourseAddSerializer
+    serializer_class = CourseSerializer
 
 class CourseList(generics.ListAPIView):
     queryset = Course.objects.all()
-    serializer_class = CourseAddSerializer
+    serializer_class = CourseSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('course_professor', )
 
@@ -42,7 +42,7 @@ class GroupAdd(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProfessorAccountViewSet(viewsets.ModelViewSet):
+class UserAccountViewSet(viewsets.ModelViewSet):
     lookup_field = 'email'
     queryset = User.objects.all()
     serializer_class = UserAccountSerializer
@@ -66,7 +66,7 @@ class ProfessorAccountViewSet(viewsets.ModelViewSet):
                                 'message': 'No accounts yet brah'
                             }, status=status.HTTP_200_OK)
 
-        serializer = ProfessorAccountSerializer(queryset, many=True)
+        serializer = UserAccountSerializer(queryset, many=True)
         return Response(serializer.data)
 
 
@@ -83,7 +83,7 @@ class ProfessorAccountViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProfessorLoginView(views.APIView):
+class LoginView(views.APIView):
     def post(self, request, format=None):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -94,7 +94,7 @@ class ProfessorLoginView(views.APIView):
             if account.is_active:
                 login(request, account)
 
-                serialized = ProfessorAccountSerializer(account)
+                serialized = UserAccountSerializer(account)
 
                 return Response(serialized.data)
             else:
