@@ -24,20 +24,21 @@ class CourseAdd(APIView):
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid():
             course = serializer.save()
-            up_file = request.FILES['import_csv']
-            filestream = StringIO.StringIO(up_file.read())
-            for row in filestream.read().splitlines():
-                cols = row.split(',')
-                my_pk = 'STUDENT|' + cols[1]
-                try:
-                    the_user = User.objects.get(pk=my_pk)
-                    course.students.add(the_user)
-                    course.save()
-                except:
-                    # Student not in system yet, add as Placeholder
-                    placeholder = User.objects.create_user(cols[1], 'PLACEHOLDER')
-                    course.students.add(placeholder)
-                    course.save()
+            if request.FILES.__len__() > 0:
+                up_file = request.FILES['import_csv']
+                filestream = StringIO.StringIO(up_file.read())
+                for row in filestream.read().splitlines():
+                    cols = row.split(',')
+                    my_pk = 'STUDENT|' + cols[1]
+                    try:
+                        the_user = User.objects.get(pk=my_pk)
+                        course.students.add(the_user)
+                        course.save()
+                    except:
+                        # Student not in system yet, add as Placeholder
+                        placeholder = User.objects.create_user(cols[1], 'PLACEHOLDER')
+                        course.students.add(placeholder)
+                        course.save()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
