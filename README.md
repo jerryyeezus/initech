@@ -11,9 +11,9 @@ To add courses
 
 http://ec2-54-69-18-202.us-west-2.compute.amazonaws.com:8000/courses
 
-To poll course by [EMAIL OF INSTRUCTOR]
+To poll course by [EMAIL OF INSTRUCTOR=yee@gatech.edu]
 
-http://ec2-54-69-18-202.us-west-2.compute.amazonaws.com:8000/courses/[EMAIL_OF_INSTRUCTOR]
+http://ec2-54-69-18-202.us-west-2.compute.amazonaws.com:8000/courses/yee@gatech.edu
 
 To register user/professor
 
