@@ -115,8 +115,9 @@ class LoginView(views.APIView):
     def post(self, request, format=None):
         email = request.data.get('email')
         password = request.data.get('password')
+        user_type = request.data.get('user_type')
 
-        account = authenticate(email=email, password=password)
+        account = authenticate(type_and_email=user_type + '|' + email, email=email, password=password)
 
         if account is not None:
             if account.is_active:

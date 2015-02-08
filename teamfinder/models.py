@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 INSTRUCTOR = 'INSTRUCTOR'
 STUDENT = 'STUDENT'
-PLACEHOLDER = 'PLACEHOLDEr'
+PLACEHOLDER = 'PLACEHOLDER'
 
 
 class AccountManager(BaseUserManager):
