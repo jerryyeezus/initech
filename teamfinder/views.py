@@ -11,8 +11,8 @@ from rest_framework import permissions, views, viewsets
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from teamfinder.models import User, Course
-from teamfinder.serializers import StudentSerializer, UserAccountSerializer, CourseSerializer
+from teamfinder.models import *
+from teamfinder.serializers import *
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 # class CourseAdd(generics.ListCreateAPIView):
@@ -51,6 +51,13 @@ class CourseList(generics.ListAPIView):
     search_fields = ('course_professor', )
     authentication_classes = (SessionAuthentication, BasicAuthentication)
 
+# Return assignments for given course
+class AssignmentList(generics.ListAPIView):
+    serializer_class = AssignmentSerializer
+
+    def get_queryset(self):
+        which_course = self.kwargs['which_course']
+        return Assignment.objects.filter(course_fk=which_course)
 
 class StudentList(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -154,3 +161,9 @@ class LogoutView(views.APIView):
 class AddStudent(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = StudentSerializer
+
+# Add assignment
+# This is currently a ListCreateAPIView for debug purposes, will change to CreateAPIView
+class AddAssignment(generics.ListCreateAPIView):
+    queryset = Assignment.objects.all()
+    serializer_class = AssignmentSerializer

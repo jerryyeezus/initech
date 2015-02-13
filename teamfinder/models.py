@@ -60,9 +60,6 @@ class User(AbstractBaseUser):
     # Resume TODO
     # resume = models.FileField(upload_to=resume_file)
 
-    # Peer Evaluation Score TODO
-    # score = ...
-
     # Interests (AI, Web Development, Machine Learning, Databases, etc...) TODO
     # interests = ...
 
@@ -76,11 +73,8 @@ class User(AbstractBaseUser):
         return self.type_and_email
 
 class Course(models.Model):
-    # Dept
-    course_dept = models.TextField(blank=False)
-
-    # Course ID
-    course_id = models.IntegerField(blank=False)
+    # Course pk
+    course_dept_and_id = models.TextField(unique=True)
 
     # Course name
     course_name = models.CharField(blank=False, max_length=64)
@@ -94,6 +88,9 @@ class Course(models.Model):
     # Students
     students = models.ManyToManyField(User, null=True, blank=True, related_name='students')
 
+    def __unicode__(self):
+        return self.course_dept_and_id
+
 class Project(models.Model):
     # Category (Fill in via clustering methods)
     category = models.TextField(blank=False)
@@ -104,23 +101,32 @@ class Project(models.Model):
     # TODO Tags?
     # tags = ...
 
-# class Group(models.Model):
-#     # Primary key id
-#     group_id = models.AutoField(primary_key=True)
-#
-#     # Group name
-#     name = models.CharField(max_length=24, blank=False)
-#
-#     # Student owner
-#     owner = models.ForeignKey(User, to_field='email', related_name='groups')
-#
-#     # Description
-#     # For example, "Hi, we looking to do web development on blah..."
-#     # This is for introductory purpose, probably not going to use in algorithms
-#     description = models.TextField(blank=True)
-#
-#     # Open roles TODO not sure how to represent this. Make table called Roles??
-#
-#     class Meta:
-#         ordering = ['name']
+class Group(models.Model):
+    # Group name
+    name = models.CharField(max_length=24, blank=False)
 
+    # Creator
+    owner = models.ForeignKey(User)
+
+    # Members
+    members = models.ManyToManyField(User, null=True, blank=True, related_name='members')
+
+    # Description
+    # For example, "Hi, we looking to do web development on blah..."
+    description = models.TextField(blank=True)
+
+class Assignment(models.Model):
+    # Course
+    course_fk = models.ForeignKey(Course)
+
+    # Number
+    assignment_number = models.IntegerField()
+
+    # Title
+    assignment_title = models.CharField(max_length=24, blank=True)
+
+    # Description
+    assignment_text = models.CharField(max_length=800, blank=True)
+
+    # Groups
+    groups = models.ManyToManyField(Group, null=True, blank=True)

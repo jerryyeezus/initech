@@ -56,7 +56,17 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ('csv_import', 'course_dept', 'course_id', 'course_name', 'course_professor', 'students')
+        fields = ('csv_import', 'course_dept_and_id', 'course_name', 'course_professor', 'students', 'pk')
+
+class AssignmentSerializer(serializers.ModelSerializer):
+    groups = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    def create(self, validated_data):
+        return Assignment.objects.create(**validated_data)
+
+    class Meta:
+        model = Assignment
+        fields = ('course_fk', 'assignment_number', 'assignment_title', 'assignment_text', 'groups')
 
 # class GroupAddSerializer(serializers.ModelSerializer):
 #     owner = serializers.CharField(required=True)
