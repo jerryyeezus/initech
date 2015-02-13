@@ -1,8 +1,7 @@
-from django.http import Http404
-from django.shortcuts import render
-import json
+import django_filters
 
 # Create your views here.
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import generics, filters
 from django.contrib.auth import authenticate, login, logout
@@ -45,11 +44,12 @@ class CourseAdd(APIView):
 
 # Return list for a given professor
 class CourseList(generics.ListAPIView):
-    queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('course_professor', )
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
+
+    def get_queryset(self):
+        return Course.objects.filter(course_professor='INSTRUCTOR|' + self.kwargs['prof'])
+    authentication_classes = (SessionAuthentication, BasicAuthentication) ## TODO wtf is this for
+    # permission_classes = (IsAuthenticated)
 
 # Return assignments for given course
 class AssignmentList(generics.ListAPIView):
