@@ -1,5 +1,3 @@
-import django_filters
-
 # Create your views here.
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -49,6 +47,34 @@ class CourseList(generics.ListAPIView):
     def get_queryset(self):
         return Course.objects.filter(course_professor='INSTRUCTOR|' + self.kwargs['prof'])
     authentication_classes = (SessionAuthentication, BasicAuthentication) ## TODO wtf is this for
+    # permission_classes = (IsAuthenticated)
+
+# Return list for a given student
+class StudentCourseList(generics.ListAPIView):
+    serializer_class = CourseSerializer
+
+    def get_queryset(self):
+        try:
+            which_student = User.objects.get(type_and_email='PLACEHOLDER|' + str(self.kwargs['student']))
+
+            the_email = which_student.type_and_email.split('|')[1]
+            new_student = User.objects.create_user(the_email, 'STUDENT')
+
+            query_set = Course.objects.filter(students__exact=which_student)
+            for course in query_set:
+                course.students.add(new_student)
+                course.save()
+
+            which_student.delete()
+        except:
+            which_student = User.objects.get(type_and_email='STUDENT|' + str(self.kwargs['student']))
+            query_set = Course.objects.filter(students__exact=which_student)
+
+        return query_set
+
+        # Case 2: I was registered, and then added
+        # return Course.objects.filter(students__in='STUDENT' + which_student)
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
     # permission_classes = (IsAuthenticated)
 
 # Return assignments for given course

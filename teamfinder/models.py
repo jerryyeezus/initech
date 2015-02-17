@@ -74,7 +74,7 @@ class User(AbstractBaseUser):
 
 class Course(models.Model):
     # Course pk
-    course_dept_and_id = models.TextField(unique=True)
+    course_dept_and_id = models.TextField()
 
     # Course name
     course_name = models.CharField(blank=False, max_length=64)

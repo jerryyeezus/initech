@@ -3,7 +3,6 @@ from rest_framework.views import APIView
 __author__ = 'yee'
 from rest_framework import serializers
 
-import csv
 from teamfinder.models import *
 
 class UserAccountSerializer(serializers.ModelSerializer):

@@ -12,6 +12,7 @@ urlpatterns = [
 
     url(r'^add_courses/$', views.CourseAdd.as_view()),
     url(r'^courses/(?P<prof>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/$', views.CourseList.as_view()),
+    url(r'^student_courses/(?P<student>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/$', views.StudentCourseList.as_view()),
 
     url(r'^add_assignment/$', views.AddAssignment.as_view()),
     url(r'^assignments/(?P<which_course>\w+)/$', views.AssignmentList.as_view()),
