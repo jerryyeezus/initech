@@ -22,6 +22,14 @@ class AccountManager(BaseUserManager):
 
         return account
 
+# A skill can be language or concept
+# Django, Javascript, REST, Machine Learning
+class Thing(models.Model):
+    name = models.CharField(unique=True, max_length=24)
+
+    def __unicode__(self):
+        return self.name
+
 class User(AbstractBaseUser):
     USER_TYPE_CHOICES = (
         (INSTRUCTOR, 'INSTRUCTOR'),
@@ -45,29 +53,33 @@ class User(AbstractBaseUser):
     Student fields
     '''
 
-    # Linkedin
-    linkedin = models.URLField()
-
-    # Github
-    github = models.URLField()
-
-    # Project Preference (ordered list)
-    # TODO
-
-    # Biography
-    bio = models.TextField()
-
-    # Resume TODO
-    # resume = models.FileField(upload_to=resume_file)
-
-    # Interests (AI, Web Development, Machine Learning, Databases, etc...) TODO
-    # interests = ...
-
     # Full name
     name = models.TextField(max_length=100, blank=False)
 
+    # Project Preference (ordered list)
+    project_pref = models.ManyToManyField('Project')
+
+    # Biography
+    bio = models.TextField(blank=True)
+
+    # GPA / 4.0
+    gpa = models.FloatField(null=True)
+
+    # Linkedin
+    linkedin = models.URLField(blank=True)
+
+    # Github
+    github = models.URLField(blank=True)
+
+    # skills (AI, Web Development, Machine Learning, Databases, etc...)
+    # Used to match with project and group needs
+    skills = models.ManyToManyField(Thing, related_name='skills', blank=True)
+
+    # Used to match with project theme
+    interests = models.ManyToManyField(Thing, related_name='interests', blank=True)
+
     # Image URL
-    profile_img = models.FileField(upload_to=profile_file, blank=True)
+    profile_img = models.FileField(upload_to=profile_file, blank=True, null=True)
 
     def __unicode__(self):
         return self.type_and_email
@@ -88,18 +100,26 @@ class Course(models.Model):
     # Students
     students = models.ManyToManyField(User, null=True, blank=True, related_name='students')
 
+    # Same
+
     def __unicode__(self):
         return self.course_dept_and_id
 
 class Project(models.Model):
+    # Name
+    name = models.CharField(max_length=24)
+
     # Category (Fill in via clustering methods)
-    category = models.TextField(blank=False)
+    category = models.ForeignKey('Thing', related_name='category')
 
     # Description
     description = models.TextField(blank=False)
 
-    # TODO Tags?
-    # tags = ...
+    # FK to assignment
+    assignment_fk = models.ForeignKey('Assignment')
+
+    # Tags
+    tags = models.ManyToManyField(Thing)
 
 class Group(models.Model):
     # Group name
@@ -114,6 +134,8 @@ class Group(models.Model):
     # Description
     # For example, "Hi, we looking to do web development on blah..."
     description = models.TextField(blank=True)
+
+    # TODO skills needed?
 
 class Assignment(models.Model):
     # Course

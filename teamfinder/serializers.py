@@ -5,13 +5,25 @@ from rest_framework import serializers
 
 from teamfinder.models import *
 
+class ThingSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        return Thing.objects.create(**validated_data)
+
+    class Meta:
+        model = Thing
+        fields = ('name')
+
+
 class UserAccountSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
+    skills_str = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    skills = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = ('email', 'user_type', 'dept', 'password', 'confirm_password')
+        fields = ('name', 'email', 'user_type', 'dept', 'password', 'confirm_password', 'gpa', 'bio', 'project_pref',
+                  'skills', 'interests', 'linkedin', 'github', 'profile_img', 'skills_str')
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)
@@ -38,13 +50,14 @@ class StudentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create(**validated_data)
 
-    # def update(self, instance, validated_data):
-    #     instance.title = validated_data.get('name', instance.name)
-    #     instance.save()
-    #     return instance
+        # def update(self, instance, validated_data):
+        # instance.title = validated_data.get('name', instance.name)
+        #     instance.save()
+        #     return instance
+
 
 # class GroupViewSerializer(serializers.ModelSerializer):
-#     class Meta:
+# class Meta:
 #         model = Group
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -56,6 +69,8 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ('csv_import', 'course_dept_and_id', 'course_name', 'course_professor', 'students', 'pk')
+
+
 
 class AssignmentSerializer(serializers.ModelSerializer):
     groups = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

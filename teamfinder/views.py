@@ -1,14 +1,14 @@
 # Create your views here.
+from django.http import QueryDict
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework import generics, filters
+from rest_framework import generics
 from django.contrib.auth import authenticate, login, logout
 import StringIO
 from rest_framework import permissions, views, viewsets
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from teamfinder.models import *
 from teamfinder.serializers import *
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
@@ -39,6 +39,10 @@ class CourseAdd(APIView):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AddThing(generics.ListCreateAPIView):
+    serializer_class = ThingSerializer
+    queryset = Thing.objects.all()
 
 # Return list for a given professor
 class CourseList(generics.ListAPIView):
@@ -132,15 +136,29 @@ class UserAccountViewSet(viewsets.ModelViewSet):
 
 
     def create(self, request):
+        # qdict = QueryDict('')
+        # qdict = qdict.copy()
+        # qdict.update(request.data)
+        # Parse inputted skills
+        # Assume comma and space (validate on client side)
+
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            User.objects.create_user(**serializer.validated_data)
+            user = User.objects.create_user(**serializer.validated_data)
+            for skill in request.data['skills_str'].split(', '):
+                try:
+                    the_skill = Thing.objects.get(name=skill)
+                except:
+                    the_skill = Thing.objects.create(name=skill)
+                user.skills.add(the_skill)
+
+            user.save()
             return Response(
                 serializer.validated_data, status=status.HTTP_201_CREATED
             )
         return Response({
             'status': 'Bad request',
-            'message': 'Account could not be created with received data.'
+            'message': str(serializer.errors)
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
