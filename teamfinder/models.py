@@ -73,10 +73,10 @@ class User(AbstractBaseUser):
 
     # skills (AI, Web Development, Machine Learning, Databases, etc...)
     # Used to match with project and group needs
-    skills = models.ManyToManyField(Thing, related_name='skills', blank=True)
+    skills = models.ManyToManyField(Thing, related_name='skills', blank=True, null=True)
 
     # Used to match with project theme
-    interests = models.ManyToManyField(Thing, related_name='interests', blank=True)
+    interests = models.ManyToManyField(Thing, related_name='interests', blank=True, null=True)
 
     # Image URL
     profile_img = models.FileField(upload_to=profile_file, blank=True, null=True)
