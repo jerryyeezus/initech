@@ -57,7 +57,7 @@ class User(AbstractBaseUser):
     name = models.TextField(max_length=100, blank=False)
 
     # Project Preference (ordered list)
-    project_pref = models.ManyToManyField('Project')
+    project_pref = models.ManyToManyField('Project', null=True)
 
     # Biography
     bio = models.TextField(blank=True)
