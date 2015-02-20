@@ -145,12 +145,13 @@ class UserAccountViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             user = User.objects.create_user(**serializer.validated_data)
-            for skill in request.data['skills_str'].split(', '):
-                try:
-                    the_skill = Thing.objects.get(name=skill)
-                except:
-                    the_skill = Thing.objects.create(name=skill)
-                user.skills.add(the_skill)
+            if len(request.data['skills_str']) > 0:
+                for skill in request.data['skills_str'].split(', '):
+                    try:
+                        the_skill = Thing.objects.get(name=skill)
+                    except:
+                        the_skill = Thing.objects.create(name=skill)
+                    user.skills.add(the_skill)
 
             user.save()
             return Response(
