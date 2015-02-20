@@ -7,14 +7,15 @@ PLACEHOLDER = 'PLACEHOLDER'
 
 
 class AccountManager(BaseUserManager):
-    def create_user(self, email, user_type, password=None, **kwargs):
-        if not email:
+    def create_user(self, email, user_type, name, password=None, **kwargs):
+        if not email or not name:
             raise ValueError('No email supplied')
 
         account = self.model(
             email=self.normalize_email(email),
             user_type=user_type,
-            type_and_email=user_type + '|' + email
+            type_and_email=user_type + '|' + email,
+            name=name
         )
 
         account.set_password(password)
