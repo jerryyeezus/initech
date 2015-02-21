@@ -50,16 +50,6 @@ class StudentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create(**validated_data)
 
-        # def update(self, instance, validated_data):
-        # instance.title = validated_data.get('name', instance.name)
-        #     instance.save()
-        #     return instance
-
-
-# class GroupViewSerializer(serializers.ModelSerializer):
-# class Meta:
-#         model = Group
-
 class CourseSerializer(serializers.ModelSerializer):
     students = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 

@@ -15,9 +15,10 @@ class AccountManager(BaseUserManager):
             email=self.normalize_email(email),
             user_type=user_type,
             type_and_email=user_type + '|' + email,
-            name=name
+            # name=name # TODO
         )
 
+        account.name = name
         account.set_password(password)
         account.save()
 

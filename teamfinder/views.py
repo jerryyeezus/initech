@@ -37,10 +37,9 @@ class CourseUpload(APIView):
                 # Student not in system yet, add as Placeholder
 
                 # Check if placeholder yet
-                if User.objects.filter(type_and_email='PLACEHOLDER|' + cols[1]).count() == 0:
-                    placeholder = User.objects.create_user(cols[1], 'PLACEHOLDER')
-                    course.students.add(placeholder)
-                    course.save()
+                placeholder = User.objects.create_user(cols[1], 'PLACEHOLDER', name=cols[0])
+                course.students.add(placeholder)
+                course.save()
 
             # return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response('Good for you Jerry :)', status=status.HTTP_201_CREATED)
@@ -114,12 +113,27 @@ class CourseList(generics.ListAPIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication) ## TODO wtf is this for
     # permission_classes = (IsAuthenticated)
 
+# Return rotser for given course pk
+class CourseRoster(generics.ListAPIView):
+    serializer_class = UserAccountSerializer
+
+    def get_queryset(self):
+        course = Course.objects.get(pk=self.kwargs['pk'])
+        for student in course.students.all():
+            pass
+            pass
+        return course.students.all()
+        # query_set = Course.objects.filter(students__exact=which_student)
+
+        return User.objects.filter()
+
 # Return list for a given student
 class StudentCourseList(generics.ListAPIView):
     serializer_class = CourseSerializer
 
     def get_queryset(self):
         try:
+            # TODO asdf filter instead
             which_student = User.objects.get(type_and_email='PLACEHOLDER|' + str(self.kwargs['student']))
 
             the_email = which_student.type_and_email.split('|')[1]
@@ -197,12 +211,6 @@ class UserAccountViewSet(viewsets.ModelViewSet):
 
 
     def create(self, request):
-        # qdict = QueryDict('')
-        # qdict = qdict.copy()
-        # qdict.update(request.data)
-        # Parse inputted skills
-        # Assume comma and space (validate on client side)
-
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             user = User.objects.create_user(**serializer.validated_data)
@@ -231,7 +239,7 @@ class LoginView(views.APIView):
         user_type = request.data.get('user_type')
         the_name = request.data.get('name')
 
-        account = authenticate(type_and_email=user_type + '|' + email, email=email, password=password, name=the_name)
+        account = authenticate(type_and_email=user_type + '|' + email, email=email, password=password)
 
         if account is not None:
             if account.is_active:
@@ -250,7 +258,6 @@ class LoginView(views.APIView):
                 'status': 'Unauthorized',
                 'message': 'Username/password combination invalid.'
             }, status=status.HTTP_401_UNAUTHORIZED)
-
 
 class LogoutView(views.APIView):
     permissions = (permissions.IsAuthenticated,)
