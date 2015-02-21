@@ -10,11 +10,72 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from teamfinder.serializers import *
+from teamfinder.models import *
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 # class CourseAdd(generics.ListCreateAPIView):
 #     queryset = Course.objects.all()
 #     serializer_class = CourseSerializer
+
+
+class CourseUpload(APIView):
+    def post(self, request):
+        the_pk = request.data.get('pk')
+        course = Course.objects.get(pk=the_pk)
+        up_file = request.FILES['import_csv']
+        filestream = StringIO.StringIO(up_file.read())
+        # serializer = CourseSerializer(data=request.data)
+        # if serializer.is_valid():
+        for row in filestream.read().splitlines():
+            cols = row.split(',')
+            my_pk = 'STUDENT|' + cols[1]
+            try:
+                the_user = User.objects.get(pk=my_pk)
+                course.students.add(the_user)
+                course.save()
+            except:
+                # Student not in system yet, add as Placeholder
+
+                # Check if placeholder yet
+                if User.objects.filter(type_and_email='PLACEHOLDER|' + cols[1]).count() == 0:
+                    placeholder = User.objects.create_user(cols[1], 'PLACEHOLDER')
+                    course.students.add(placeholder)
+                    course.save()
+
+            # return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response('Good for you Jerry :)', status=status.HTTP_201_CREATED)
+
+class GroupAdd(APIView):
+    # For debug only
+    # def get(self, request):
+    #     groups = Group.objects.all();
+    #     return Response(groups)
+
+    def post(self, request):
+        which_assignment = request.data.get('which_assignment')
+        assignment = Assignment.objects.get(pk=which_assignment)
+        course = Course.objects.get(pk=assignment.course_fk.pk)
+        new_group = Group.objects.create(name='Generated Group', number=0)
+        assignment.groups.add(new_group)
+        students = course.students.all()
+
+        # Partition into four each
+        students_added = 0
+        for student in students:
+            # Create new group every 4 students
+            if students_added % 4 == 0:
+                new_group = Group.objects.create(name='Generated Group', number=1+students_added/4)
+                assignment.groups.add(new_group)
+
+            # Add student to the group
+            new_group.members.add(student)
+            new_group.save()
+
+            # Add group to the assignment
+            students_added += 1
+
+        assignment.save()
+        return Response('Group done', status=status.HTTP_201_CREATED)
 
 class CourseAdd(APIView):
     def post(self, request):

@@ -7,8 +7,8 @@ PLACEHOLDER = 'PLACEHOLDER'
 
 
 class AccountManager(BaseUserManager):
-    def create_user(self, email, user_type, name, password=None, **kwargs):
-        if not email or not name:
+    def create_user(self, email, user_type, name='', password=None, **kwargs):
+        if not email:
             raise ValueError('No email supplied')
 
         account = self.model(
@@ -126,8 +126,8 @@ class Group(models.Model):
     # Group name
     name = models.CharField(max_length=24, blank=False)
 
-    # Creator
-    owner = models.ForeignKey(User)
+    # Group #
+    number = models.IntegerField(blank=False)
 
     # Members
     members = models.ManyToManyField(User, null=True, blank=True, related_name='members')

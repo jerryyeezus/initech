@@ -18,6 +18,8 @@ urlpatterns = [
     # url(r'^add_group/$', views.GroupAdd.as_view()),
     url(r'^add_assignment/$', views.AddAssignment.as_view()),
     url(r'^add_courses/$', views.CourseAdd.as_view()),
+    url(r'^add_import/$', views.CourseUpload.as_view()),
+    url(r'^add_group/$', views.GroupAdd.as_view()),
     url(r'^add_thing/$', views.AddThing.as_view()),
 
 
