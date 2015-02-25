@@ -123,7 +123,7 @@ class Project(models.Model):
     # Tags
     tags = models.ManyToManyField(Thing)
 
-class Group(models.Model):
+class Team(models.Model):
     # Group name
     name = models.CharField(max_length=24, blank=False)
 
@@ -153,4 +153,4 @@ class Assignment(models.Model):
     assignment_text = models.CharField(max_length=800, blank=True)
 
     # Groups
-    groups = models.ManyToManyField(Group, null=True, blank=True)
+    teams = models.ManyToManyField(Team, null=True, blank=True)

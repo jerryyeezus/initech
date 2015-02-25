@@ -60,35 +60,35 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = ('csv_import', 'course_dept_and_id', 'course_name', 'course_professor', 'students', 'pk')
 
-class GroupSerializer(serializers.ModelSerializer):
+class TeamSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     def create(self, validated_data):
         return Course.objects.create(**validated_data)
 
     class Meta:
-        model = Group
+        model = Team
         fields = ('pk', 'name', 'number', 'members', 'description')
 
 
 class AssignmentSerializer(serializers.ModelSerializer):
-    groups = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    teams = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     def create(self, validated_data):
         return Assignment.objects.create(**validated_data)
 
     class Meta:
         model = Assignment
-        fields = ('pk', 'course_fk', 'assignment_number', 'assignment_title', 'assignment_text', 'groups')
+        fields = ('pk', 'course_fk', 'assignment_number', 'assignment_title', 'assignment_text', 'teams')
 
-# class GroupAddSerializer(serializers.ModelSerializer):
+# class TeamAddSerializer(serializers.ModelSerializer):
 #     owner = serializers.CharField(required=True)
 #
 #     def create(self, validated_data):
-#         group_owner = User.objects.get(pk=self.data.get('owner'))
-#         validated_data['owner'] = group_owner
+#         Team_owner = User.objects.get(pk=self.data.get('owner'))
+#         validated_data['owner'] = Team_owner
 #
-#         return Group.objects.create(**validated_data)
+#         return Team.objects.create(**validated_data)
 #
 #     def update(self, instance, validated_data):
 #         instance.title = validated_data.get('name', instance.name)
@@ -96,5 +96,5 @@ class AssignmentSerializer(serializers.ModelSerializer):
 #         return instance
 #
 #     class Meta:
-#         model = Group
+#         model = Team
 #         fields = ('name', 'description', 'owner')

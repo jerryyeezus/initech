@@ -28,7 +28,11 @@ class CourseUpload(APIView):
         # if serializer.is_valid():
         for row in filestream.read().splitlines():
             cols = row.split(',')
-            my_pk = 'STUDENT|' + cols[1]
+            try:
+                my_pk = 'STUDENT|' + cols[1]
+            except IndexError:
+                return Response('Bad input', status=status.HTTP_400_BAD_REQUEST)
+
             try:
                 the_user = User.objects.get(pk=my_pk)
                 course.students.add(the_user)
@@ -41,40 +45,53 @@ class CourseUpload(APIView):
                 course.students.add(placeholder)
                 course.save()
 
-            # return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response('Good for you Jerry :)', status=status.HTTP_201_CREATED)
 
-class GroupAdd(APIView):
+class AddTeam(APIView):
+    def post(self, request):
+        which_assignment = request.data.get('which_assignment')
+        team_name = request.data.get('team_name')
+        team_description = request.data.get('team_name')
+        assignment = Assignment.objects.get(pk=which_assignment)
+        new_team = Team.objects.create(name=team_name, team_description=team_description, number=assignment.groups.count()+1)
+        owner = request.data.get('owner')
+        new_team.members.add(owner)
+        new_team.save()
+        assignment.teams.add(new_team)
+        assignment.save()
+        return Response('Team done', status=status.HTTP_201_CREATED)
+
+class GenerateTeams(APIView):
     # For debug only
     # def get(self, request):
-    #     groups = Group.objects.all();
-    #     return Response(groups)
+    #     Teams = Team.objects.all();
+    #     return Response(Teams)
 
     def post(self, request):
         which_assignment = request.data.get('which_assignment')
         assignment = Assignment.objects.get(pk=which_assignment)
         course = Course.objects.get(pk=assignment.course_fk.pk)
-        new_group = Group.objects.create(name='Generated Group', number=0)
-        assignment.groups.add(new_group)
+        new_Team = Team.objects.create(name='Generated Team', number=0)
+        assignment.teams.add(new_Team)
         students = course.students.all()
 
         # Partition into four each
         students_added = 0
         for student in students:
-            # Create new group every 4 students
+            # Create new Team every 4 students
             if students_added % 4 == 0:
-                new_group = Group.objects.create(name='Generated Group', number=1+students_added/4)
-                assignment.groups.add(new_group)
+                new_Team = Team.objects.create(name='Generated Team', number=1+students_added/4)
+                assignment.teams.add(new_Team)
 
-            # Add student to the group
-            new_group.members.add(student)
-            new_group.save()
+            # Add student to the Team
+            new_Team.members.add(student)
+            new_Team.save()
 
-            # Add group to the assignment
+            # Add Team to the assignment
             students_added += 1
 
         assignment.save()
-        return Response('Group done', status=status.HTTP_201_CREATED)
+        return Response('Team done', status=status.HTTP_201_CREATED)
 
 class CourseAdd(APIView):
     def post(self, request):
@@ -173,9 +190,9 @@ class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = StudentSerializer
 
 
-# class GroupAdd(APIView):
+# class TeamAdd(APIView):
 #     def post(self, request):
-#         serializer = GroupAddSerializer(data=request.data)
+#         serializer = TeamAddSerializer(data=request.data)
 #         if serializer.is_valid():
 #             serializer.save()
 #             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -268,9 +285,9 @@ class LogoutView(views.APIView):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
-# class GroupViewList(generics.ListAPIView):
-#     queryset = Group.objects.all()
-#     serializer_class = GroupViewSerializer
+# class TeamViewList(generics.ListAPIView):
+#     queryset = Team.objects.all()
+#     serializer_class = TeamViewSerializer
 
 class AddStudent(generics.ListCreateAPIView):
     queryset = User.objects.all()
