@@ -1,6 +1,7 @@
 #!/bin/sh
 
 host="http://localhost:8000/"
+#host="http://ec2-54-69-18-202.us-west-2.compute.amazonaws.com:8000/"
 
 http -f POST "$host""register/" name="Jerry Yee" email="yee@gatech.edu" password="asdf" confirm_password="asdf" user_type="INSTRUCTOR" skills_str="" > /dev/null
 

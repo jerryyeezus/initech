@@ -1,5 +1,8 @@
 # Create your views here.
+import json
+from django.db.backends.sqlite3.base import IntegrityError
 from django.http import QueryDict
+import traceback
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import generics
@@ -7,15 +10,13 @@ from django.contrib.auth import authenticate, login, logout
 import StringIO
 from rest_framework import permissions, views, viewsets
 from rest_framework import status
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from teamfinder.serializers import *
+from django.core import serializers
 from teamfinder.models import *
 from rest_framework.permissions import BasePermission, SAFE_METHODS
-
-# class CourseAdd(generics.ListCreateAPIView):
-#     queryset = Course.objects.all()
-#     serializer_class = CourseSerializer
 
 
 class CourseUpload(APIView):
@@ -47,24 +48,36 @@ class CourseUpload(APIView):
 
         return Response('Good for you Jerry :)', status=status.HTTP_201_CREATED)
 
+
 class AddTeam(APIView):
     def post(self, request):
         which_assignment = request.data.get('which_assignment')
         team_name = request.data.get('team_name')
         team_description = request.data.get('team_name')
+        if team_description is None:
+            team_description = ''
+
         assignment = Assignment.objects.get(pk=which_assignment)
-        new_team = Team.objects.create(name=team_name, team_description=team_description, number=assignment.groups.count()+1)
+        num_teams = assignment.teams.count()
+        if team_name is None:
+            team_name = 'Team ' + str(num_teams + 1)
+
+        new_team = Team.objects.create(name=team_name, description=team_description,
+                                       number=num_teams + 1)
         owner = request.data.get('owner')
         new_team.members.add(owner)
         new_team.save()
         assignment.teams.add(new_team)
         assignment.save()
-        return Response('Team done', status=status.HTTP_201_CREATED)
+
+        teams = assignment.teams.all()
+        return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
+
 
 class GenerateTeams(APIView):
     # For debug only
     # def get(self, request):
-    #     Teams = Team.objects.all();
+    # Teams = Team.objects.all();
     #     return Response(Teams)
 
     def post(self, request):
@@ -80,7 +93,7 @@ class GenerateTeams(APIView):
         for student in students:
             # Create new Team every 4 students
             if students_added % 4 == 0:
-                new_Team = Team.objects.create(name='Generated Team', number=1+students_added/4)
+                new_Team = Team.objects.create(name='Generated Team', number=1 + students_added / 4)
                 assignment.teams.add(new_Team)
 
             # Add student to the Team
@@ -92,6 +105,7 @@ class GenerateTeams(APIView):
 
         assignment.save()
         return Response('Team done', status=status.HTTP_201_CREATED)
+
 
 class CourseAdd(APIView):
     def post(self, request):
@@ -117,9 +131,11 @@ class CourseAdd(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class AddThing(generics.ListCreateAPIView):
     serializer_class = ThingSerializer
     queryset = Thing.objects.all()
+
 
 # Return list for a given professor
 class CourseList(generics.ListAPIView):
@@ -127,8 +143,10 @@ class CourseList(generics.ListAPIView):
 
     def get_queryset(self):
         return Course.objects.filter(course_professor='INSTRUCTOR|' + self.kwargs['prof'])
-    authentication_classes = (SessionAuthentication, BasicAuthentication) ## TODO wtf is this for
+
+    authentication_classes = (SessionAuthentication, BasicAuthentication)  ## TODO wtf is this for
     # permission_classes = (IsAuthenticated)
+
 
 # Return rotser for given course pk
 class CourseRoster(generics.ListAPIView):
@@ -136,13 +154,8 @@ class CourseRoster(generics.ListAPIView):
 
     def get_queryset(self):
         course = Course.objects.get(pk=self.kwargs['pk'])
-        for student in course.students.all():
-            pass
-            pass
         return course.students.all()
-        # query_set = Course.objects.filter(students__exact=which_student)
 
-        return User.objects.filter()
 
 # Return list for a given student
 class StudentCourseList(generics.ListAPIView):
@@ -150,7 +163,6 @@ class StudentCourseList(generics.ListAPIView):
 
     def get_queryset(self):
         try:
-            # TODO asdf filter instead
             which_student = User.objects.get(type_and_email='PLACEHOLDER|' + str(self.kwargs['student']))
 
             the_email = which_student.type_and_email.split('|')[1]
@@ -170,8 +182,10 @@ class StudentCourseList(generics.ListAPIView):
 
         # Case 2: I was registered, and then added
         # return Course.objects.filter(students__in='STUDENT' + which_student)
+
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     # permission_classes = (IsAuthenticated)
+
 
 # Return assignments for given course
 class AssignmentList(generics.ListAPIView):
@@ -181,9 +195,11 @@ class AssignmentList(generics.ListAPIView):
         which_course = self.kwargs['which_course']
         return Assignment.objects.filter(course_fk=which_course)
 
+
 class StudentList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = StudentSerializer
+
 
 class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
@@ -191,7 +207,7 @@ class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 # class TeamAdd(APIView):
-#     def post(self, request):
+# def post(self, request):
 #         serializer = TeamAddSerializer(data=request.data)
 #         if serializer.is_valid():
 #             serializer.save()
@@ -244,9 +260,9 @@ class UserAccountViewSet(viewsets.ModelViewSet):
                 serializer.validated_data, status=status.HTTP_201_CREATED
             )
         return Response({
-            'status': 'Bad request',
-            'message': str(serializer.errors)
-        }, status=status.HTTP_400_BAD_REQUEST)
+                            'status': 'Bad request',
+                            'message': str(serializer.errors)
+                        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(views.APIView):
@@ -267,14 +283,15 @@ class LoginView(views.APIView):
                 return Response(serialized.data)
             else:
                 return Response({
-                    'status': 'Unauthorized',
-                    'message': 'This account has been disabled.'
-                }, status=status.HTTP_401_UNAUTHORIZED)
+                                    'status': 'Unauthorized',
+                                    'message': 'This account has been disabled.'
+                                }, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({
-                'status': 'Unauthorized',
-                'message': 'Username/password combination invalid.'
-            }, status=status.HTTP_401_UNAUTHORIZED)
+                                'status': 'Unauthorized',
+                                'message': 'Username/password combination invalid.'
+                            }, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class LogoutView(views.APIView):
     permissions = (permissions.IsAuthenticated,)
@@ -292,6 +309,7 @@ class LogoutView(views.APIView):
 class AddStudent(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = StudentSerializer
+
 
 # Add assignment
 # This is currently a ListCreateAPIView for debug purposes, will change to CreateAPIView
