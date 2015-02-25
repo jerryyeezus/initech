@@ -156,6 +156,17 @@ class CourseRoster(generics.ListAPIView):
         course = Course.objects.get(pk=self.kwargs['pk'])
         return course.students.all()
 
+# Return rotser for given assignment pk
+class CourseTeams(generics.ListCreateAPIView):
+    serializer_class = TeamSerializer
+
+    def get_queryset(self):
+        # Assignments with course=which_course
+        ass_num = self.kwargs['assignment_number']
+        assignments = Assignment.objects.filter(course_fk=self.kwargs['course_pk'])
+        the_assignment = assignments.all().get(assignment_number=ass_num)
+        return the_assignment.teams.all()
+
 
 # Return list for a given student
 class StudentCourseList(generics.ListAPIView):
