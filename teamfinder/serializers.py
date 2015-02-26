@@ -81,20 +81,10 @@ class AssignmentSerializer(serializers.ModelSerializer):
         model = Assignment
         fields = ('pk', 'course_fk', 'assignment_number', 'assignment_title', 'assignment_text', 'teams')
 
-# class TeamAddSerializer(serializers.ModelSerializer):
-#     owner = serializers.CharField(required=True)
-#
-#     def create(self, validated_data):
-#         Team_owner = User.objects.get(pk=self.data.get('owner'))
-#         validated_data['owner'] = Team_owner
-#
-#         return Team.objects.create(**validated_data)
-#
-#     def update(self, instance, validated_data):
-#         instance.title = validated_data.get('name', instance.name)
-#         instance.save()
-#         return instance
-#
-#     class Meta:
-#         model = Team
-#         fields = ('name', 'description', 'owner')
+class QuestionSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        return Question.objects.create(**validated_data)
+
+    class Meta:
+        model = Question
+        fields = ('course_fk', 'text', 'value')

@@ -78,7 +78,7 @@ class GenerateTeams(APIView):
     # For debug only
     # def get(self, request):
     # Teams = Team.objects.all();
-    #     return Response(Teams)
+    # return Response(Teams)
 
     def post(self, request):
         which_assignment = request.data.get('which_assignment')
@@ -108,6 +108,11 @@ class GenerateTeams(APIView):
 
 
 class CourseAdd(APIView):
+    def delete(self, request, pk, format=None):
+        which_course = Course.objects.get(pk=pk)
+        which_course.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def post(self, request):
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid():
@@ -155,6 +160,7 @@ class CourseRoster(generics.ListAPIView):
     def get_queryset(self):
         course = Course.objects.get(pk=self.kwargs['pk'])
         return course.students.all()
+
 
 # Return rotser for given assignment pk
 class CourseTeams(generics.ListCreateAPIView):
@@ -207,6 +213,20 @@ class AssignmentList(generics.ListAPIView):
         return Assignment.objects.filter(course_fk=which_course)
 
 
+# Return questions for given course
+class QuestionView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    serializer_class = QuestionSerializer
+
+    def delete(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
+
+    def get_queryset(self):
+        if 'which_course' in self.kwargs:
+            which_course = self.kwargs['which_course']
+            return Question.objects.filter(course_fk=which_course)
+        return Question.objects.all()
+
+
 class StudentList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = StudentSerializer
@@ -215,15 +235,6 @@ class StudentList(generics.ListCreateAPIView):
 class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = StudentSerializer
-
-
-# class TeamAdd(APIView):
-# def post(self, request):
-#         serializer = TeamAddSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserAccountViewSet(viewsets.ModelViewSet):
@@ -312,10 +323,6 @@ class LogoutView(views.APIView):
 
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
-
-# class TeamViewList(generics.ListAPIView):
-#     queryset = Team.objects.all()
-#     serializer_class = TeamViewSerializer
 
 class AddStudent(generics.ListCreateAPIView):
     queryset = User.objects.all()

@@ -102,7 +102,8 @@ class Course(models.Model):
     # Students
     students = models.ManyToManyField(User, null=True, blank=True, related_name='students')
 
-    # Same
+    # Same teams disallowed across different assignments
+    same_disallowed = models.BooleanField(blank=True, default=False)
 
     def __unicode__(self):
         return self.course_dept_and_id
@@ -154,3 +155,9 @@ class Assignment(models.Model):
 
     # Groups
     teams = models.ManyToManyField(Team, null=True, blank=True)
+
+class Question(models.Model):
+    course_fk = models.ForeignKey(Course)
+    text = models.CharField(max_length=24)
+    value = models.IntegerField()
+
