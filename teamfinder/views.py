@@ -46,6 +46,7 @@ class CourseUpload(APIView):
                 course.students.add(placeholder)
                 course.save()
 
+        asdf = course.students.all()
         return Response('Good for you Jerry :)', status=status.HTTP_201_CREATED)
 
 
