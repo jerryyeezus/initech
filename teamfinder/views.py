@@ -46,7 +46,6 @@ class CourseUpload(APIView):
                 course.students.add(placeholder)
                 course.save()
 
-        asdf = course.students.all()
         return Response('Good for you Jerry :)', status=status.HTTP_201_CREATED)
 
 
@@ -85,27 +84,31 @@ class GenerateTeams(APIView):
         which_assignment = request.data.get('which_assignment')
         assignment = Assignment.objects.get(pk=which_assignment)
         course = Course.objects.get(pk=assignment.course_fk.pk)
-        new_Team = Team.objects.create(name='Generated Team', number=0)
+        new_Team = Team.objects.create(name='Generated Team', number=1)
         assignment.teams.add(new_Team)
+        assignment.save()
         students = course.students.all()
+        which_team = 1
 
         # Partition into four each
         students_added = 0
         for student in students:
             # Create new Team every 4 students
-            if students_added % 4 == 0:
-                new_Team = Team.objects.create(name='Generated Team', number=1 + students_added / 4)
+            if students_added % 4 == 0 and students_added != 0:
+                new_Team = Team.objects.create(name='Generated Team', number=2 + students_added / 4)
                 assignment.teams.add(new_Team)
+                assignment.save()
+                which_team += 1
 
             # Add student to the Team
             new_Team.members.add(student)
             new_Team.save()
-
-            # Add Team to the assignment
             students_added += 1
 
+        assignment.teams.add(new_Team)
         assignment.save()
-        return Response('Team done', status=status.HTTP_201_CREATED)
+        teams = assignment.teams.all()
+        return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
 
 
 class CourseAdd(APIView):
@@ -164,15 +167,22 @@ class CourseRoster(generics.ListAPIView):
 
 
 # Return rotser for given assignment pk
-class CourseTeams(generics.ListCreateAPIView):
+class CourseTeams(generics.ListAPIView):
     serializer_class = TeamSerializer
 
     def get_queryset(self):
         # Assignments with course=which_course
-        ass_num = self.kwargs['assignment_number']
-        assignments = Assignment.objects.filter(course_fk=self.kwargs['course_pk'])
-        the_assignment = assignments.all().get(assignment_number=ass_num)
-        return the_assignment.teams.all()
+        # ass_num = self.kwargs['assignment_number']
+        # assignments = Assignment.objects.filter(course_fk=self.kwargs['course_pk'])
+        # the_assignment = assignments.all().get(assignment_number=ass_num)
+        # return the_assignment.teams.all()
+        assignment = Assignment.objects.get(pk=self.kwargs['ass_pk'])
+        asdf = assignment.teams.all()
+        for x in asdf:
+            for y in x.members.all():
+                print y.email
+        return assignment.teams.all()
+        # return Course.objects.filter(course_professor='INSTRUCTOR|' + self.kwargs['prof'])
 
 
 # Return list for a given student
