@@ -74,15 +74,70 @@ class AddTeam(APIView):
         return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
 
 
+TEAM_MIN = 3   # min number for team
 class GenerateTeams(APIView):
-    # For debug only
-    # def get(self, request):
-    # Teams = Team.objects.all();
-    # return Response(Teams)
-
     def post(self, request):
         which_assignment = request.data.get('which_assignment')
         assignment = Assignment.objects.get(pk=which_assignment)
+        course = Course.objects.get(pk=assignment.course_fk.pk)
+
+        # Initialize to all students
+        available = {}
+        for student in course.students.all():
+            available[student] = True
+
+        # Remove students that have a team. Fill in (members, team) into tuple array as well.
+        teams = assignment.teams.all()
+        stage_0_teams = []    # Tuple array I will use for sorting by least amount of members
+        for team in teams:
+            members = team.members.all()
+            stage_0_teams.append((len(members), team))
+            for member in team.members.all():
+                # Mark member as unavailable
+                del available[member]
+
+        # Stage 1: Fill in smallest groups first with available students
+        # Iterate teams again. Fill in the teams with most difference from TEAM_MIN = 3
+        next_stage = False  # We go to next stage (combining) when there are no longer anymore students we can add
+        stage_1_teams = []
+        for team_tuple in sorted(stage_0_teams, key=lambda x: x[0]):
+            if next_stage:
+                break
+            num_members = team_tuple[0]
+            team = team_tuple[1]
+            while TEAM_MIN >= num_members:
+                # Check if there are un-grouped students
+                if len(available) > 0:
+                    # Get next guy and delete him from available and add to team
+                    team.members.add(available[available.keys()[0]])
+                    team.save()
+                    num_members += 1
+                    del available[available.keys()[0]]
+                else:
+                    next_stage = True
+                    break
+                    
+            stage_1_teams.append((num_members, team))
+                    
+        # Stage 2: Combining teams
+        for team_tuple in sorted(stage_1_teams, key=lambda x: x[0]):
+            if next_stage:
+                break
+            num_members = team_tuple[0]
+            team = team_tuple[1]
+            if num_members < TEAM_MIN:
+                # TODO combine the team with next smallest team
+                # NOTE: This will be sub-optimal, if the smallest are sized 2,5,5,5,5
+                # will result in size=7 when it may be better to take 1 from each group
+                pass
+
+
+
+
+    def post_old(self, request):
+        which_assignment = request.data.get('which_assignment')
+        assignment = Assignment.objects.get(pk=which_assignment)
+
         course = Course.objects.get(pk=assignment.course_fk.pk)
         new_Team = Team.objects.create(name='Generated Team', number=1)
         assignment.teams.add(new_Team)
