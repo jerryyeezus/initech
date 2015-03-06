@@ -166,7 +166,8 @@ class GenerateTeams(APIView):
 
 
 class CourseAdd(APIView):
-    def delete(self, request, pk, format=None):
+    def delete(self, request, format=None):
+        pk = request.data.get('pk')
         which_course = Course.objects.get(pk=pk)
         which_course.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
