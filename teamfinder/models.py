@@ -15,14 +15,17 @@ class AccountManager(BaseUserManager):
             email=self.normalize_email(email),
             user_type=user_type,
             type_and_email=user_type + '|' + email,
-            # name=name # TODO
         )
 
         account.name = name
         account.set_password(password)
         account.save()
-
         return account
+
+    def update(self, instance, validated_data):
+        print 'update serializer'
+        # instance.username = validated_data.get('username', instance.username)
+        pass
 
 # A skill can be language or concept
 # Django, Javascript, REST, Machine Learning
@@ -44,6 +47,7 @@ class User(AbstractBaseUser):
     dept = models.CharField(max_length=8, blank=True)
     type_and_email = models.CharField(primary_key=True, max_length=64, unique=True)
     objects = AccountManager()
+    lfg = models.BooleanField(blank=True, default=False)
 
     USERNAME_FIELD = 'type_and_email'
     REQUIRED_FIELDS = ['username', 'user_type']
