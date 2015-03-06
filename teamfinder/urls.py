@@ -6,7 +6,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf.urls.static import static
 
 urlpatterns = [
-    url(r'^register/$', views.UserAccountViewSet.as_view({'post': 'create', 'get': 'list'})),
+    url(r'^register/$', views.UserAccountViewSet.as_view({'post': 'create', 'get': 'list', 'put': 'update'})),
     url(r'^login/$', views.LoginView.as_view()),
     url(r'^logout/$', views.LogoutView.as_view()),
     url(r'^courses/(?P<prof>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/$', views.CourseList.as_view()),
