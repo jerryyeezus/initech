@@ -1,8 +1,11 @@
 # Create your views here.
+from Queue import PriorityQueue, Queue
+from heapq import *
 import json
 from django.db.backends.sqlite3.base import IntegrityError
 from django.http import QueryDict
 import traceback
+import itertools
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import generics
@@ -50,6 +53,19 @@ class CourseUpload(APIView):
 
 
 class AddTeam(APIView):
+    def put(self, request):
+        which_team = request.data.get('which_team')
+        which_student = request.data.get('which_student')
+        which_action = request.data.get('which_action')
+        team = Team.objects.get(pk=which_team)
+        user = User.objects.get(type_and_email=which_student)
+        if which_action == 'add':
+            team.members.add(user)
+        elif which_action == 'remove':
+            team.members.remove(user)
+        team.save()
+        return Response(status=status.HTTP_200_OK)
+
     def post(self, request):
         which_assignment = request.data.get('which_assignment')
         team_name = request.data.get('team_name')
@@ -64,8 +80,8 @@ class AddTeam(APIView):
 
         new_team = Team.objects.create(name=team_name, description=team_description,
                                        number=num_teams + 1)
-        owner = request.data.get('owner')
-        new_team.members.add(owner)
+        # owner = request.data.get('owner')
+        # new_team.members.add(owner)
         new_team.save()
         assignment.teams.add(new_team)
         assignment.save()
@@ -76,64 +92,113 @@ class AddTeam(APIView):
 
 TEAM_MIN = 3  # min number for team
 
+
+class StudentObj:
+    def __init__(self, student):
+        self.type_and_email = student.type_and_email
+
+
+class ConfigState:
+    class TeamObj:
+        def __init__(self, team):
+            self.members = []
+            for member in team.members.all():
+                self.members.append(StudentObj(member))
+            self.pk = team.pk
+
+    def __init__(self, available, teams, g=0, django=True):
+        self.teams = []
+        for team in teams:
+            if django:
+                self.teams.append(self.TeamObj(team))  # can't be django
+            else:
+                self.teams.append(team)  # can't be django
+
+        self.available = []
+        for avail in available:
+            self.available.append(StudentObj(avail))
+        self.g = g
+
+    def __unicode__(self):
+        ret = '=================================='
+        ret += 'State with g=' + str(self.g)
+        ret += '\n'
+        ret += 'Teams:\n'
+        for team in self.teams:
+            ret += 'Team ' + str(team.pk)
+            ret += '-----------------------------\n'
+            for member in team.members:
+                ret += member.type_and_email
+                ret += '\n'
+            ret += '\n'
+        ret += '=================================='
+        return ret
+
+
+class GenAlgorithm():
+    # initial state
+    def __init__(self, available, teams):
+        self.initState = ConfigState(available, teams)
+
+    def get_children(self, state):
+        children = []
+        cstate = state[1]
+        teams = cstate.teams
+        available = cstate.available
+
+        # Add reduce states (Combining group)
+        for i, j in itertools.combinations(range(len(teams)), 2):
+            # Merge team[i] and team[j]
+            new_teams = teams[:]  # make copy of it
+            # Iterate all members in team[j] and add to team[i]
+            for member in new_teams[j].members:
+                new_teams[i].members.append(member)
+            del new_teams[j]
+            new_state = ConfigState(available, new_teams, django=False)
+            children.append(new_state)
+
+            # Add shift states TODO
+            # ...
+
+            return children
+
+    def is_goal(self, state):
+        return False
+
+    def search(self):
+        frontier = []
+        i = 0
+        heappush(frontier, (i, self.initState))
+        current = heappop(frontier)
+        while not self.is_goal(current):
+            # Append children
+            for child in self.get_children(current):
+                print child.__unicode__()
+
+
 class GenerateTeams(APIView):
-    # def post(self, request):
-    #     which_assignment = request.data.get('which_assignment')
-    #     assignment = Assignment.objects.get(pk=which_assignment)
-    #     course = Course.objects.get(pk=assignment.course_fk.pk)
-    #
-    #     # Initialize to all students
-    #     available = {}
-    #     for student in course.students.all():
-    #         available[student] = True
-    #
-    #     # Remove students that have a team. Fill in (members, team) into tuple array as well.
-    #     teams = assignment.teams.all()
-    #     stage_0_teams = []  # Tuple array I will use for sorting by least amount of members
-    #     for team in teams:
-    #         members = team.members.all()
-    #         stage_0_teams.append((len(members), team))
-    #         for member in team.members.all():
-    #             # Mark member as unavailable
-    #             del available[member]
-    #
-    #     # Stage 1: Fill in smallest groups first with available students
-    #     # Iterate teams again. Fill in the teams with most difference from TEAM_MIN = 3
-    #     next_stage = False  # We go to next stage (combining) when there are no longer anymore students we can add
-    #     stage_1_teams = []
-    #     for team_tuple in sorted(stage_0_teams, key=lambda x: x[0]):
-    #         if next_stage:
-    #             break
-    #         num_members = team_tuple[0]
-    #         team = team_tuple[1]
-    #         while TEAM_MIN >= num_members:
-    #             # Check if there are un-grouped students
-    #             if len(available) > 0:
-    #                 # Get next guy and delete him from available and add to team
-    #                 team.members.add(available[available.keys()[0]])
-    #                 team.save()
-    #                 num_members += 1
-    #                 del available[available.keys()[0]]
-    #             else:
-    #                 next_stage = True
-    #                 break
-    #
-    #         stage_1_teams.append((num_members, team))
-    #
-    #     # Stage 2: Combining teams
-    #     for team_tuple in sorted(stage_1_teams, key=lambda x: x[0]):
-    #         if next_stage:
-    #             break
-    #         num_members = team_tuple[0]
-    #         team = team_tuple[1]
-    #         if num_members < TEAM_MIN:
-    #             # TODO combine the team with next smallest team
-    #             # NOTE: This will be sub-optimal, if the smallest are sized 2,5,5,5,5
-    #             # will result in size=7 when it may be better to take 1 from each group
-    #             pass
-
-
     def post(self, request):
+        which_assignment = request.data.get('which_assignment')
+        assignment = Assignment.objects.get(pk=which_assignment)
+        course = Course.objects.get(pk=assignment.course_fk.pk)
+
+        # Initialize to all students
+        available = {}
+        for student in course.students.all():
+            available[student] = StudentObj(student)
+
+        # Remove students that have a team. Fill in (members, team) into tuple array as well.
+        teams = assignment.teams.all()
+        for team in teams:
+            for member in team.members.all():
+                del available[member]
+
+        algo = GenAlgorithm(available.keys(), teams)
+        algo.search()
+        print 'Done'
+
+
+    def old(self, request):
         which_assignment = request.data.get('which_assignment')
         assignment = Assignment.objects.get(pk=which_assignment)
 
@@ -309,13 +374,13 @@ class UserAccountViewSet(viewsets.ModelViewSet):
     serializer_class = UserAccountSerializer
 
     # def get_permissions(self):
-    #     if self.request.method in permissions.SAFE_METHODS:
-    #         return (permissions.AllowAny(),)
+    # if self.request.method in permissions.SAFE_METHODS:
+    # return (permissions.AllowAny(),)
     #
-    #     if self.request.method == 'POST':
-    #         return (permissions.AllowAny(),)
+    # if self.request.method == 'POST':
+    # return (permissions.AllowAny(),)
     #
-    #     # return (permissions.IsAuthenticated(), IsAccountOwner(),)
+    # # return (permissions.IsAuthenticated(), IsAccountOwner(),)
     #     # TODO
     #     return False
 
@@ -385,8 +450,6 @@ class LoginView(views.APIView):
         the_name = request.data.get('name')
 
         account = authenticate(type_and_email=user_type + '|' + email, email=email, password=password)
-
-
 
         if account is not None:
             if account.is_active:
