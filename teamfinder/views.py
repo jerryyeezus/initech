@@ -68,7 +68,7 @@ class AddTeam(APIView):
             if which_field == 'description':
                 team.description = field_value
             if which_field == 'lfm':
-                team.lfg = field_value
+                team.lfm = field_value
             team.save()
             return Response(serializers.serialize('json', team), status=status.HTTP_201_CREATED)
             # return Response(status=status.HTTP_200_OK)
