@@ -20,6 +20,7 @@ urlpatterns = [
     url(r'^generate_teams/$', views.GenerateTeams.as_view()),
     url(r'^add_team/$', views.AddTeam.as_view()),
     url(r'^add_request/$', views.RequestAdd.as_view()),
+    url(r'^requests/(?P<which_team>\d+)/$', views.RequestView.as_view()),
     url(r'^add_thing/$', views.AddThing.as_view()),
     # url(r'^add_thing/$', views.AddThing.as_view()),
     url(r'^questions/$', views.QuestionView.as_view()),

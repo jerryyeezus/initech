@@ -287,12 +287,31 @@ class GenerateTeams(APIView):
 
 
 class RequestAdd(APIView):
+    def put(self, request):
+        pk = request.data.get('which_request')
+        which_request = JoinRequest.objects.get(pk=pk)
+        which_request.delete()
+        return Response(status=status.HTTP_200_OK)
+
     def post(self, request):
         serializer = JoinRequestSerializer(data=request.data)
         if serializer.is_valid():
             request = serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RequestView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    serializer_class = JoinRequestSerializer
+
+    def delete(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
+
+    def get_queryset(self):
+        if 'which_team' in self.kwargs:
+            which_team = self.kwargs['which_team']
+            return JoinRequest.objects.filter(team=which_team)
+
+        return JoinRequest.objects.all()
 
 class CourseAdd(APIView):
     def put(self, request):

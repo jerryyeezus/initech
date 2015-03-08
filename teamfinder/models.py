@@ -145,6 +145,8 @@ class Team(models.Model):
     lfm = models.BooleanField(blank=True, default=False)
 
     # TODO skills needed?
+    def __unicode__(self):
+        return self.name
 
 class JoinRequest(models.Model):
     requester = models.ForeignKey(User)
