@@ -59,9 +59,10 @@ class AddTeam(APIView):
         which_student = request.data.get('which_student')
         which_action = request.data.get('which_action')
         which_field = request.data.get('which_field')
-        field_value = request.data.get('which_field')
+        field_value = request.data.get('field_value')
         team = Team.objects.get(pk=which_team)
 
+	print which_action
         if which_action == 'update':
             if which_field == 'name':
                 team.name = field_value
@@ -70,9 +71,10 @@ class AddTeam(APIView):
             if which_field == 'lfm':
                 team.lfm = field_value
             team.save()
-            return Response(serializers.serialize('json', team), status=status.HTTP_201_CREATED)
-            # return Response(status=status.HTTP_200_OK)
+            #return Response(serializers.serialize('json', team), status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_200_OK)
 
+	
         user = User.objects.get(type_and_email=which_student)
         if which_action == 'add':
             team.members.add(user)
