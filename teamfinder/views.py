@@ -58,7 +58,21 @@ class AddTeam(APIView):
         which_team = request.data.get('which_team')
         which_student = request.data.get('which_student')
         which_action = request.data.get('which_action')
+        which_field = request.data.get('which_field')
+        field_value = request.data.get('which_field')
         team = Team.objects.get(pk=which_team)
+
+        if which_action == 'update':
+            if which_field == 'name':
+                team.name = field_value
+            if which_field == 'description':
+                team.description = field_value
+            if which_field == 'lfm':
+                team.lfg = field_value
+            team.save()
+            return Response(serializers.serialize('json', team), status=status.HTTP_201_CREATED)
+            # return Response(status=status.HTTP_200_OK)
+
         user = User.objects.get(type_and_email=which_student)
         if which_action == 'add':
             team.members.add(user)
@@ -81,8 +95,9 @@ class AddTeam(APIView):
 
         new_team = Team.objects.create(name=team_name, description=team_description,
                                        number=num_teams + 1)
-        # owner = request.data.get('owner')
-        # new_team.members.add(owner)
+        owner = request.data.get('owner')
+        if 'STUDENT' in owner:
+            new_team.members.add(owner)
         new_team.save()
         assignment.teams.add(new_team)
         assignment.save()
