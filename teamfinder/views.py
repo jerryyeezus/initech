@@ -17,6 +17,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from teamfinder.serializers import *
+import copy
 from django.core import serializers
 from teamfinder.models import *
 from rest_framework.permissions import BasePermission, SAFE_METHODS
@@ -90,12 +91,15 @@ class AddTeam(APIView):
         return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
 
 
-TEAM_MIN = 3  # min number for team
+TEAM_MIN = 4  # min number for team TODO
 
 
 class StudentObj:
     def __init__(self, student):
         self.type_and_email = student.type_and_email
+
+    def __unicode__(self):
+        return self.type_and_email
 
 
 class ConfigState:
@@ -103,34 +107,52 @@ class ConfigState:
         def __init__(self, team):
             self.members = []
             for member in team.members.all():
-                self.members.append(StudentObj(member))
+                self.members.append(copy.copy(StudentObj(member)))
             self.pk = team.pk
+            self.number = team.number
+            self.name = team.name
+            self.description = team.description
 
-    def __init__(self, available, teams, g=0, django=True):
+        def __unicode__(self):
+            return self.pk
+
+    def __init__(self, available, teams, parent=None, prev_action=None, g=0, django=True, node_id=0):
+        self.node_id = node_id
         self.teams = []
+        self.parent = parent
+        self.prev_action = prev_action
         for team in teams:
             if django:
-                self.teams.append(self.TeamObj(team))  # can't be django
+                self.teams.append(self.TeamObj(team))
             else:
-                self.teams.append(team)  # can't be django
+                self.teams.append(team)
 
         self.available = []
         for avail in available:
             self.available.append(StudentObj(avail))
         self.g = g
 
+    @property
     def __unicode__(self):
         ret = '=================================='
-        ret += 'State with g=' + str(self.g)
+        ret += '\n<State: id=' + str(self.node_id) + ", g=" + str(self.g) + ', parent=' + str(
+            self.parent) + ', prev_action=' + str(
+            self.prev_action) + '>'
         ret += '\n'
         ret += 'Teams:\n'
         for team in self.teams:
             ret += 'Team ' + str(team.pk)
-            ret += '-----------------------------\n'
+            ret += '\n-----------------------------\n'
             for member in team.members:
                 ret += member.type_and_email
                 ret += '\n'
             ret += '\n'
+
+        ret += 'Available:\n'
+        for x in self.available:
+            ret += str(x.type_and_email)
+            ret += '\n'
+        ret += '\n'
         ret += '=================================='
         return ret
 
@@ -139,41 +161,78 @@ class GenAlgorithm():
     # initial state
     def __init__(self, available, teams):
         self.initState = ConfigState(available, teams)
+        self.node_id = 0
 
     def get_children(self, state):
         children = []
         cstate = state[1]
-        teams = cstate.teams
+        teams = copy.deepcopy(cstate.teams)
         available = cstate.available
 
         # Add reduce states (Combining group)
         for i, j in itertools.combinations(range(len(teams)), 2):
             # Merge team[i] and team[j]
-            new_teams = teams[:]  # make copy of it
+            # new_teams = teams[:]  # make copy of it
+            # Make deep copy brah
+            new_teams = copy.deepcopy(teams)
+            for x, team in enumerate(new_teams):
+                team.members = copy.deepcopy(teams[x].members)
+
             # Iterate all members in team[j] and add to team[i]
             for member in new_teams[j].members:
                 new_teams[i].members.append(member)
             del new_teams[j]
-            new_state = ConfigState(available, new_teams, django=False)
+            self.node_id += 1
+            new_state = ConfigState(available, new_teams, django=False, g=state[0] + 1, parent=cstate.node_id,
+                                    prev_action='reduce', node_id=self.node_id)
             children.append(new_state)
 
-            # Add shift states TODO
-            # ...
+        # Add shift states
+        next_student = cstate.available[0]
+        del cstate.available[0]
 
-            return children
+        for i in range(len(teams)):
+            # Deep copy
+            new_teams = copy.deepcopy(teams)
+            for x, team in enumerate(new_teams):
+                team.members = copy.deepcopy(teams[x].members)
+
+            new_teams[i].members.append(next_student)
+            self.node_id += 1
+            new_state = ConfigState(cstate.available, new_teams, django=False, g=state[0] + 1, parent=cstate.node_id,
+                                    prev_action='shift ' + next_student.type_and_email, node_id=self.node_id)
+            children.append(new_state)
+
+        return children
 
     def is_goal(self, state):
-        return False
+        # Check team balanced
+        for team in state[1].teams:
+            # TODO come up with better goal (calc students in class / 4), add heuristic of teamsize sq distance
+            if len(team.members) < TEAM_MIN:
+                return False
+
+        # Check all assigned
+        return len(state[1].available) == 0
 
     def search(self):
         frontier = []
         i = 0
         heappush(frontier, (i, self.initState))
-        current = heappop(frontier)
-        while not self.is_goal(current):
-            # Append children
-            for child in self.get_children(current):
-                print child.__unicode__()
+        while True:
+            try:
+                current = heappop(frontier)
+                if self.is_goal(current):
+                    self.is_goal(current)
+                    # print current[1].__unicode__
+                    break
+                # Append children
+                for child in self.get_children(current):
+                    # print child.__unicode__
+                    heappush(frontier, (child.g, child))
+            except Exception as exc:
+                print exc.message
+        return current
 
 
 class GenerateTeams(APIView):
@@ -194,8 +253,20 @@ class GenerateTeams(APIView):
                 del available[member]
 
         algo = GenAlgorithm(available.keys(), teams)
-        algo.search()
-        print 'Done'
+        result = algo.search()
+
+        assignment.teams.all().delete()
+        for team in result[1].teams:
+            members = User.objects.filter(type_and_email__in=team.members)
+            for student in members:
+                student.lfg = False
+            new_django_team = Team.objects.create(name=team.name, number=team.number, description=team.description)
+            new_django_team.members.add(*members)
+            new_django_team.save()
+            assignment.teams.add(new_django_team)
+            assignment.save()
+        teams = assignment.teams.all()
+        return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
 
 
     def old(self, request):
@@ -231,11 +302,11 @@ class GenerateTeams(APIView):
 
 
 class CourseAdd(APIView):
-    def delete(self, request, format=None):
+    def put(self, request):
         pk = request.data.get('pk')
         which_course = Course.objects.get(pk=pk)
         which_course.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = CourseSerializer(data=request.data)
@@ -381,8 +452,8 @@ class UserAccountViewSet(viewsets.ModelViewSet):
     # return (permissions.AllowAny(),)
     #
     # # return (permissions.IsAuthenticated(), IsAccountOwner(),)
-    #     # TODO
-    #     return False
+    # # TODO
+    # return False
 
     def update(self, request, *args, **kwargs):
         which = request.data.get('type_and_email')

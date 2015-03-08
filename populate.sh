@@ -35,6 +35,7 @@ http -f POST "$host""add_assignment/" assignment_number=1 course_fk=2 > /dev/nul
 
 http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
 
+http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
 
 http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
 
@@ -44,4 +45,6 @@ http -f PUT "$host""add_team/" which_team=1 which_student='STUDENT|fuccboi@gatec
 
 http -f PUT "$host""add_team/" which_team=2 which_student='STUDENT|yeezy@gatech.edu' which_action='add' > /dev/null
 
+
+http -f PUT "$host""add_team/" which_team=3 which_student='PLACEHOLDER|joe@gatech.edu' which_action='add' > /dev/null
 

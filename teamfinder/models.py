@@ -142,6 +142,8 @@ class Team(models.Model):
     # For example, "Hi, we looking to do web development on blah..."
     description = models.TextField(blank=True)
 
+    lfm = models.BooleanField(blank=True, default=False)
+
     # TODO skills needed?
 
 class Assignment(models.Model):
