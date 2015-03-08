@@ -70,6 +70,15 @@ class TeamSerializer(serializers.ModelSerializer):
         model = Team
         fields = ('pk', 'name', 'number', 'members', 'description')
 
+class JoinRequestSerializer(serializers.ModelSerializer):
+    # members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    def create(self, validated_data):
+        return JoinRequest.objects.create(**validated_data)
+
+    class Meta:
+        model = JoinRequest
+        fields = ('pk', 'requester', 'message', 'team')
 
 class AssignmentSerializer(serializers.ModelSerializer):
     teams = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

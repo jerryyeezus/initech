@@ -146,6 +146,11 @@ class Team(models.Model):
 
     # TODO skills needed?
 
+class JoinRequest(models.Model):
+    requester = models.ForeignKey(User)
+    message = models.CharField(max_length=64, blank=True)
+    team = models.ForeignKey(Team)
+
 class Assignment(models.Model):
     # Course
     course_fk = models.ForeignKey(Course)

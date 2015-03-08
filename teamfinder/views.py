@@ -284,37 +284,13 @@ class GenerateTeams(APIView):
         return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
 
 
-    def old(self, request):
-        which_assignment = request.data.get('which_assignment')
-        assignment = Assignment.objects.get(pk=which_assignment)
-
-        course = Course.objects.get(pk=assignment.course_fk.pk)
-        new_Team = Team.objects.create(name='Generated Team', number=1)
-        assignment.teams.add(new_Team)
-        assignment.save()
-        students = course.students.all()
-        which_team = 1
-
-        # Partition into four each
-        students_added = 0
-        for student in students:
-            # Create new Team every 4 students
-            if students_added % 4 == 0 and students_added != 0:
-                new_Team = Team.objects.create(name='Generated Team', number=2 + students_added / 4)
-                assignment.teams.add(new_Team)
-                assignment.save()
-                which_team += 1
-
-            # Add student to the Team
-            new_Team.members.add(student)
-            new_Team.save()
-            students_added += 1
-
-        assignment.teams.add(new_Team)
-        assignment.save()
-        teams = assignment.teams.all()
-        return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
-
+class RequestAdd(APIView):
+    def post(self, request):
+        serializer = JoinRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            request = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CourseAdd(APIView):
     def put(self, request):
