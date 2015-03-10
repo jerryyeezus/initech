@@ -188,7 +188,7 @@ class GenAlgorithm():
         self.node_id = 0
         self.num_students = len(available)
         for team in teams:
-            self.num_students += len(team.members) # TODO test
+            self.num_students += team.members.all().count() # TODO test
 
     def get_children(self, state):
         children = []
@@ -217,7 +217,7 @@ class GenAlgorithm():
         # Add create state
         # only create if teams less than students / 4
         # could be none avail
-        if len(teams) < (self.num_students / TEAM_MIN) / 2 and len(cstate.available) > 0:
+        if len(teams) < (self.num_students / TEAM_MIN) / 2 + 1 and len(cstate.available) > 0:
             next_student = cstate.available[0]
             new_available = cstate.available[1:] # TODO dont
             new_teams = copy.deepcopy(teams)
@@ -229,7 +229,7 @@ class GenAlgorithm():
             children.append(new_state)
 
         # Add shift states
-        if len(teams) > 1 and len(cstate.available) > 0:
+        if len(teams) > 0 and len(cstate.available) > 0:
             next_student = cstate.available[0]
             del cstate.available[0]
             for i in range(len(teams)):
@@ -271,6 +271,8 @@ class GenAlgorithm():
                     heappush(frontier, (child.g, child))
             except Exception as exc:
                 print exc.message
+                self.get_children(current)
+                return None
         return current
 
 
@@ -293,6 +295,8 @@ class GenerateTeams(APIView):
 
         algo = GenAlgorithm(available.keys(), teams)
         result = algo.search()
+        if result is None:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         assignment.teams.all().delete()
         for team in result[1].teams:
