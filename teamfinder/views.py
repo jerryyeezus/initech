@@ -217,7 +217,7 @@ class GenAlgorithm():
         # Add create state
         # only create if teams less than students / 4
         # could be none avail
-        if len(teams) < self.num_students / TEAM_MIN and len(cstate.available) > 0:
+        if len(teams) < (self.num_students / TEAM_MIN) / 2 and len(cstate.available) > 0:
             next_student = cstate.available[0]
             new_available = cstate.available[1:] # TODO dont
             new_teams = copy.deepcopy(teams)
