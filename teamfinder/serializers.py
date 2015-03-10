@@ -23,7 +23,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('name', 'email', 'user_type', 'dept', 'password', 'confirm_password', 'gpa', 'bio', 'project_pref',
-                  'skills', 'interests', 'linkedin', 'github', 'profile_img', 'skills_str')
+                  'skills', 'interests', 'linkedin', 'github', 'profile_img', 'skills_str', 'lfg')
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)
@@ -68,7 +68,7 @@ class TeamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Team
-        fields = ('pk', 'name', 'number', 'members', 'description')
+        fields = ('pk', 'name', 'number', 'members', 'description', 'lfm')
 
 class JoinRequestSerializer(serializers.ModelSerializer):
     # members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
