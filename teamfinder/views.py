@@ -469,8 +469,26 @@ class AnswersView(generics.ListCreateAPIView, generics.DestroyAPIView):
             return Answer.objects.filter(question_fk=which_question, user_fk=which_user)
         return Question.objects.all()
 
+class QuestionDetailView(generics.UpdateAPIView, generics.DestroyAPIView, generics.ListCreateAPIView):
+    serializer_class = QuestionSerializer
+    def update(self, request, *args, **kwargs):
+        question = Question.objects.get(pk=kwargs.get('pk'))
+        which_action = request.data.get('which_action')
+        value = request.data.get('value')
+        if which_action == 'update':
+            question.text = value
+            question.save()
+        elif which_action == 'delete':
+            question.delete()
+        return Response(status=status.HTTP_200_OK)
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        return Question.objects.filter(pk=pk)
+
+
 # Return questions for given course
-class QuestionView(generics.ListCreateAPIView, generics.DestroyAPIView):
+class QuestionView(generics.ListAPIView, generics.DestroyAPIView, generics.UpdateAPIView):
     serializer_class = QuestionSerializer
 
     def delete(self, request, *args, **kwargs):

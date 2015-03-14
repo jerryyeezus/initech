@@ -172,7 +172,7 @@ class Assignment(models.Model):
 
 class Question(models.Model):
     ass_fk = models.ForeignKey(Assignment)
-    text = models.CharField(max_length=24)
+    text = models.CharField(max_length=48)
 
 class Answer(models.Model):
     question_fk = models.ForeignKey(Question)

@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^add_thing/$', views.AddThing.as_view()),
     url(r'^questions/$', views.QuestionView.as_view()),
     url(r'^questions/(?P<which_ass>\d+)$', views.QuestionView.as_view()),
+    url(r'^question/(?P<pk>\d+)$', views.QuestionDetailView.as_view()),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
