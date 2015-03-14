@@ -488,7 +488,7 @@ class QuestionDetailView(generics.UpdateAPIView, generics.DestroyAPIView, generi
 
 
 # Return questions for given course
-class QuestionView(generics.ListAPIView, generics.DestroyAPIView, generics.UpdateAPIView):
+class QuestionView(generics.ListCreateAPIView, generics.DestroyAPIView, generics.UpdateAPIView):
     serializer_class = QuestionSerializer
 
     def delete(self, request, *args, **kwargs):
