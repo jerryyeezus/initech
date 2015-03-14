@@ -104,7 +104,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ('course_fk', 'text', 'value')
+        fields = ('ass_fk', 'text',)
 
 # class LFMSerializer(serializers.ModelSerializer):
 #     def create(self, validated_data):
