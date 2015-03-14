@@ -22,9 +22,14 @@ urlpatterns = [
     url(r'^add_request/$', views.RequestAdd.as_view()),
     url(r'^requests/(?P<which_team>\d+)/$', views.RequestView.as_view()),
     url(r'^add_thing/$', views.AddThing.as_view()),
-    # url(r'^add_thing/$', views.AddThing.as_view()),
+    url(r'^notifications/$', views.AddNotification.as_view()),
+    url(r'^notifications/(?P<to>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/$', views.AddNotification.as_view()),
+    url(r'^add_lfg/$', views.AddLFG.as_view()),
+    url(r'^add_lfg/(?P<pk>\d+)/$', views.AddLFG.as_view()),
+    # url(r'^add_lfm/$', views.AddLFM.as_view()),
+    url(r'^add_thing/$', views.AddThing.as_view()),
     url(r'^questions/$', views.QuestionView.as_view()),
-    url(r'^questions/(?P<which_course>\d+)$', views.QuestionView.as_view()),
+    url(r'^questions/(?P<which_ass>\d+)$', views.QuestionView.as_view()),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

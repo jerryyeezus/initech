@@ -1,5 +1,4 @@
 # Create your views here.
-from Queue import PriorityQueue, Queue
 from heapq import *
 import json
 from django.db.backends.sqlite3.base import IntegrityError
@@ -62,7 +61,6 @@ class AddTeam(APIView):
         field_value = request.data.get('field_value')
         team = Team.objects.get(pk=which_team)
 
-	print which_action
         if which_action == 'update':
             if which_field == 'name':
                 team.name = field_value
@@ -71,10 +69,9 @@ class AddTeam(APIView):
             if which_field == 'lfm':
                 team.lfm = field_value
             team.save()
-            #return Response(serializers.serialize('json', team), status=status.HTTP_201_CREATED)
+            # return Response(serializers.serialize('json', team), status=status.HTTP_201_CREATED)
             return Response(status=status.HTTP_200_OK)
 
-	
         user = User.objects.get(type_and_email=which_student)
         if which_action == 'add':
             team.members.add(user)
@@ -118,6 +115,7 @@ class StudentObj:
     def __unicode__(self):
         return self.type_and_email
 
+
 class TeamObj:
     def __init__(self, team, name=None, number=None):
         self.members = []
@@ -138,8 +136,8 @@ class TeamObj:
     def __unicode__(self):
         return self.pk
 
-class ConfigState:
 
+class ConfigState:
     def __init__(self, available, teams, parent=None, prev_action=None, g=0, django=True, node_id=0):
         self.node_id = node_id
         self.teams = []
@@ -154,6 +152,7 @@ class ConfigState:
         self.available = []
         for avail in available:
             self.available.append(StudentObj(avail))
+
         self.g = g
 
     @property
@@ -181,6 +180,10 @@ class ConfigState:
         return ret
 
 
+def goodness(new_teams):
+    return 0
+
+
 class GenAlgorithm():
     # initial state
     def __init__(self, available, teams):
@@ -188,7 +191,7 @@ class GenAlgorithm():
         self.node_id = 0
         self.num_students = len(available)
         for team in teams:
-            self.num_students += team.members.all().count() # TODO test
+            self.num_students += team.members.all().count()  # TODO test
 
     def get_children(self, state):
         children = []
@@ -210,7 +213,8 @@ class GenAlgorithm():
                 new_teams[i].members.append(member)
             del new_teams[j]
             self.node_id += 1
-            new_state = ConfigState(available, new_teams, django=False, g=state[0] + 1, parent=cstate.node_id,
+            new_g = state[0] + goodness(new_teams)
+            new_state = ConfigState(available, new_teams, g=new_g, django=False, parent=cstate.node_id,
                                     prev_action='reduce', node_id=self.node_id)
             children.append(new_state)
 
@@ -219,12 +223,13 @@ class GenAlgorithm():
         # could be none avail
         if len(teams) < (self.num_students / TEAM_MIN) / 2 + 1 and len(cstate.available) > 0:
             next_student = cstate.available[0]
-            new_available = cstate.available[1:] # TODO dont
+            new_available = cstate.available[1:]
             new_teams = copy.deepcopy(teams)
-            new_teams.append(TeamObj(team=None, name='Generated Group', number=len(teams)+1))
-            new_teams[len(new_teams)-1].members.append(next_student)
+            new_teams.append(TeamObj(team=None, name='Generated Group', number=len(teams) + 1))
+            new_teams[len(new_teams) - 1].members.append(next_student)
             self.node_id += 1
-            new_state = ConfigState(new_available, new_teams, django=False, g=state[0] + 1, parent=cstate.node_id,
+            new_g = state[0] + goodness(new_teams)
+            new_state = ConfigState(new_available, new_teams, django=False, g=new_g, parent=cstate.node_id,
                                     prev_action='create', node_id=self.node_id)
             children.append(new_state)
 
@@ -238,7 +243,8 @@ class GenAlgorithm():
                     team.members = copy.deepcopy(teams[x].members)
                 new_teams[i].members.append(next_student)
                 self.node_id += 1
-                new_state = ConfigState(cstate.available, new_teams, django=False, g=state[0] + 1, parent=cstate.node_id,
+                new_g = state[0] + goodness(new_teams)
+                new_state = ConfigState(cstate.available, new_teams, django=False, g=new_g, parent=cstate.node_id,
                                         prev_action='shift ' + next_student.type_and_email, node_id=self.node_id)
                 children.append(new_state)
 
@@ -326,6 +332,7 @@ class RequestAdd(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class RequestView(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = JoinRequestSerializer
 
@@ -338,6 +345,7 @@ class RequestView(generics.ListCreateAPIView, generics.DestroyAPIView):
             return JoinRequest.objects.filter(team=which_team)
 
         return JoinRequest.objects.all()
+
 
 class CourseAdd(APIView):
     def put(self, request):
@@ -406,10 +414,6 @@ class CourseTeams(generics.ListAPIView):
         # the_assignment = assignments.all().get(assignment_number=ass_num)
         # return the_assignment.teams.all()
         assignment = Assignment.objects.get(pk=self.kwargs['ass_pk'])
-        asdf = assignment.teams.all()
-        for x in asdf:
-            for y in x.members.all():
-                print y.email
         return assignment.teams.all()
         # return Course.objects.filter(course_professor='INSTRUCTOR|' + self.kwargs['prof'])
 
@@ -452,6 +456,18 @@ class AssignmentList(generics.ListAPIView):
         which_course = self.kwargs['which_course']
         return Assignment.objects.filter(course_fk=which_course)
 
+class AnswersView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    serializer_class = AnswerSerializer
+
+    def delete(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
+
+    def get_queryset(self):
+        if 'which_question' in self.kwargs:
+            which_question = self.kwargs['which_question']
+            which_user = self.request.data['user']
+            return Answer.objects.filter(question_fk=which_question, user_fk=which_user)
+        return Question.objects.all()
 
 # Return questions for given course
 class QuestionView(generics.ListCreateAPIView, generics.DestroyAPIView):
@@ -461,9 +477,9 @@ class QuestionView(generics.ListCreateAPIView, generics.DestroyAPIView):
         return Response(status=status.HTTP_200_OK)
 
     def get_queryset(self):
-        if 'which_course' in self.kwargs:
-            which_course = self.kwargs['which_course']
-            return Question.objects.filter(course_fk=which_course)
+        if 'which_ass' in self.kwargs:
+            which_ass = self.kwargs['which_ass']
+            return Question.objects.filter(ass_fk=which_ass)
         return Question.objects.all()
 
 
@@ -557,15 +573,12 @@ class LoginView(views.APIView):
         password = request.data.get('password')
         user_type = request.data.get('user_type')
         the_name = request.data.get('name')
-
         account = authenticate(type_and_email=user_type + '|' + email, email=email, password=password)
 
         if account is not None:
             if account.is_active:
                 login(request, account)
-
                 serialized = UserAccountSerializer(account)
-
                 return Response(serialized.data)
             else:
                 return Response({
@@ -584,7 +597,6 @@ class LogoutView(views.APIView):
 
     def post(self, request, format=None):
         logout(request)
-
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
@@ -598,3 +610,22 @@ class AddStudent(generics.ListCreateAPIView):
 class AddAssignment(generics.ListCreateAPIView):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentSerializer
+
+class AddNotification(generics.ListCreateAPIView, generics.DestroyAPIView):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        if 'to' in self.kwargs:
+            to = 'STUDENT|' + self.kwargs['to']
+            return Notification.objects.filter(to_user=to)
+        return Notification.objects.all()
+
+class AddLFG(generics.ListCreateAPIView, generics.DestroyAPIView):
+    queryset = LFG.objects.all()
+    serializer_class = LFGSerializer
+
+# class AddLFM(generics.ListCreateAPIView):
+#     queryset = LFM.objects.all()
+#     serializer_class = LFMSerializer
+

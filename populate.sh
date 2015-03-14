@@ -12,7 +12,7 @@ else
 fi
 
 
-http -f POST "$host""register/" name="Jerry Yee" email="yee@gatech.edu" password="asdf" confirm_password="asdf" user_type="INSTRUCTOR" skills_str="" > /dev/null
+http -f POST "$host""register/" name="Jerry Yee" email="yee@gatech.edu" password="pass" confirm_password="pass" user_type="INSTRUCTOR" skills_str="" > /dev/null
 
 http -f POST "$host""register/" name="Bud Peterson" email="you@gatech.edu" password="pass" confirm_password="pass" user_type="INSTRUCTOR" skills_str="" > /dev/null
 

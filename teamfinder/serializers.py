@@ -17,13 +17,13 @@ class ThingSerializer(serializers.ModelSerializer):
 class UserAccountSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
-    skills_str = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    # skills_str = serializers.CharField(write_only=True, required=False, allow_blank=True)
     skills = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = User
         fields = ('name', 'email', 'user_type', 'dept', 'password', 'confirm_password', 'gpa', 'bio', 'project_pref',
-                  'skills', 'interests', 'linkedin', 'github', 'profile_img', 'skills_str', 'lfg')
+                  'skills', 'interests', 'linkedin', 'github', 'profile_img', 'skills_str')
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)
@@ -90,6 +90,14 @@ class AssignmentSerializer(serializers.ModelSerializer):
         model = Assignment
         fields = ('pk', 'course_fk', 'assignment_number', 'assignment_title', 'assignment_text', 'teams')
 
+class AnswerSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        return Answer.objects.create(**validated_data)
+
+    class Meta:
+        model = Answer
+        fields = ('question', 'student', 'value', 'weight')
+
 class QuestionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Question.objects.create(**validated_data)
@@ -97,3 +105,27 @@ class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ('course_fk', 'text', 'value')
+
+# class LFMSerializer(serializers.ModelSerializer):
+#     def create(self, validated_data):
+#         return LFM.objects.create(**validated_data)
+#
+#     class Meta:
+#         model = LFM
+#         fields = ('team_fk', 'ass_fk')
+
+class LFGSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        return LFG.objects.create(**validated_data)
+
+    class Meta:
+        model = LFG
+        fields = ('pk', 'user_fk', 'ass_fk')
+
+class NotificationSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        return Notification.objects.create(**validated_data)
+
+    class Meta:
+        model = Notification
+        fields = ('pk', 'message', 'to_user', 'from_user')

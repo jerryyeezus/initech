@@ -47,7 +47,7 @@ class User(AbstractBaseUser):
     dept = models.CharField(max_length=8, blank=True)
     type_and_email = models.CharField(primary_key=True, max_length=64, unique=True)
     objects = AccountManager()
-    lfg = models.BooleanField(blank=True, default=False)
+    skills_str = models.CharField(max_length=256, unique=False, blank=True)
 
     USERNAME_FIELD = 'type_and_email'
     REQUIRED_FIELDS = ['username', 'user_type']
@@ -169,8 +169,28 @@ class Assignment(models.Model):
     # Groups
     teams = models.ManyToManyField(Team, null=True, blank=True)
 
-class Question(models.Model):
-    course_fk = models.ForeignKey(Course)
-    text = models.CharField(max_length=24)
-    value = models.IntegerField()
 
+class Question(models.Model):
+    ass_fk = models.ForeignKey(Assignment)
+    text = models.CharField(max_length=24)
+
+class Answer(models.Model):
+    question_fk = models.ForeignKey(Question)
+    user_fk = models.ForeignKey(User)
+    value = models.IntegerField()
+    weight = models.FloatField()
+
+class Notification(models.Model):
+    message = models.TextField(blank=True)
+    from_user = models.ForeignKey(User, related_name='from_user')
+    to_user = models.ForeignKey(User, related_name='to_user')
+
+class LFG(models.Model):
+    user_fk = models.ForeignKey(User, related_name='user_fk')
+    ass_fk = models.ForeignKey(Assignment)
+    class Meta:
+        unique_together = (('user_fk', 'ass_fk'), )
+
+# class LFM(models.Model):
+#     team_fk = models.ForeignKey(Team, related_name='team_fk')
+#     ass_fk = models.ForeignKey(Assignment)
