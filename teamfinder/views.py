@@ -456,8 +456,27 @@ class AssignmentList(generics.ListAPIView):
         which_course = self.kwargs['which_course']
         return Assignment.objects.filter(course_fk=which_course)
 
-class AnswersView(generics.ListCreateAPIView, generics.DestroyAPIView):
+class AnswersView(generics.ListAPIView, generics.DestroyAPIView, generics.UpdateAPIView):
     serializer_class = AnswerSerializer
+
+    def put(self, request, *args, **kwargs):
+        user = request.data.get('user_fk')
+        weight = request.data.get('weight')
+        question = request.data.get('question_fk')
+        value = request.data.get('value')
+
+        # Does question have an ansewr?
+        queryset = Answer.objects.filter(question_fk=question, user_fk=user)
+        if len(queryset) > 0:
+            # Exists, so update it
+            for x in queryset:
+                x.weight = weight
+                x.value = value
+                x.save()
+        else:
+            # Create it
+            Answer.objects.create(user_fk=user, weight=weight, value=value, question_fk=question)
+        return Response(status=status.HTTP_200_OK)
 
     def delete(self, request, *args, **kwargs):
         return Response(status=status.HTTP_200_OK)

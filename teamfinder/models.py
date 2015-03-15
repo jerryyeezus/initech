@@ -183,6 +183,8 @@ class Answer(models.Model):
     user_fk = models.ForeignKey(User)
     value = models.IntegerField()
     weight = models.FloatField()
+    class Meta:
+        unique_together = (('user_fk', 'question_fk'), )
 
 class Notification(models.Model):
     message = models.TextField(blank=True)
