@@ -462,12 +462,28 @@ class AnswersView(generics.ListCreateAPIView, generics.DestroyAPIView):
     def delete(self, request, *args, **kwargs):
         return Response(status=status.HTTP_200_OK)
 
-    def get_queryset(self):
-        if 'which_question' in self.kwargs:
-            which_question = self.kwargs['which_question']
-            which_user = self.request.data['user']
-            return Answer.objects.filter(question_fk=which_question, user_fk=which_user)
-        return Question.objects.all()
+    def list(self, request, *args, **kwargs):
+        if 'question' in self.kwargs:
+            question = self.kwargs['question']
+            which_user = 'STUDENT|' + self.kwargs['user']
+            queryset = Answer.objects.filter(question_fk=question, user_fk=which_user)
+        else:
+            queryset = Answer.objects.all()
+        if queryset.__len__() == 0:
+            return Response({
+                                'status': 'No accounts yet',
+                                'message': 'No accounts yet brah'
+                            }, status=status.HTTP_200_OK)
+
+        serializer = AnswerSerializer(queryset, many=True)
+        return Response(serializer.data)
+        # return Answer.objects.filter(question_fk=question, user_fk=which_user)
+
+    # def get_queryset(self):
+    #     if 'ass' in self.kwargs:
+    #         question = self.kwargs['question']
+    #         which_user = 'STUDENT|' + self.kwargs['user']
+    #         return Answer.objects.filter(question_fk=question, user_fk=which_user)
 
 class QuestionDetailView(generics.UpdateAPIView, generics.DestroyAPIView, generics.ListCreateAPIView):
     serializer_class = QuestionSerializer
@@ -515,17 +531,6 @@ class UserAccountViewSet(viewsets.ModelViewSet):
     lookup_field = 'email'
     queryset = User.objects.all()
     serializer_class = UserAccountSerializer
-
-    # def get_permissions(self):
-    # if self.request.method in permissions.SAFE_METHODS:
-    # return (permissions.AllowAny(),)
-    #
-    # if self.request.method == 'POST':
-    # return (permissions.AllowAny(),)
-    #
-    # # return (permissions.IsAuthenticated(), IsAccountOwner(),)
-    # # TODO
-    # return False
 
     def update(self, request, *args, **kwargs):
         which = request.data.get('type_and_email')

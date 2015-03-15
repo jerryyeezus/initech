@@ -173,6 +173,10 @@ class Assignment(models.Model):
 class Question(models.Model):
     ass_fk = models.ForeignKey(Assignment)
     text = models.CharField(max_length=48)
+    lo = models.CharField(max_length=48)
+    hi = models.CharField(max_length=48)
+    def __unicode__(self):
+        return self.text
 
 class Answer(models.Model):
     question_fk = models.ForeignKey(Question)

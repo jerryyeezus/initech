@@ -31,6 +31,8 @@ urlpatterns = [
     url(r'^questions/$', views.QuestionView.as_view()),
     url(r'^questions/(?P<which_ass>\d+)$', views.QuestionView.as_view()),
     url(r'^question/(?P<pk>\d+)$', views.QuestionDetailView.as_view()),
+    url(r'^answer/(?P<question>\d+)/(?P<user>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/$', views.AnswersView.as_view()),
+    url(r'^answer/$', views.AnswersView.as_view()),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

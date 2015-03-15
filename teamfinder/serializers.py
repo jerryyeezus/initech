@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from teamfinder.models import *
 
+
 class ThingSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Thing.objects.create(**validated_data)
@@ -50,6 +51,7 @@ class StudentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create(**validated_data)
 
+
 class CourseSerializer(serializers.ModelSerializer):
     students = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
@@ -59,6 +61,7 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ('csv_import', 'course_dept_and_id', 'course_name', 'course_professor', 'students', 'pk')
+
 
 class TeamSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
@@ -70,6 +73,7 @@ class TeamSerializer(serializers.ModelSerializer):
         model = Team
         fields = ('pk', 'name', 'number', 'members', 'description', 'lfm')
 
+
 class JoinRequestSerializer(serializers.ModelSerializer):
     # members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
@@ -79,6 +83,7 @@ class JoinRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = JoinRequest
         fields = ('pk', 'requester', 'message', 'team')
+
 
 class AssignmentSerializer(serializers.ModelSerializer):
     teams = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
@@ -90,13 +95,15 @@ class AssignmentSerializer(serializers.ModelSerializer):
         model = Assignment
         fields = ('pk', 'course_fk', 'assignment_number', 'assignment_title', 'assignment_text', 'teams')
 
+
 class AnswerSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Answer.objects.create(**validated_data)
 
     class Meta:
         model = Answer
-        fields = ('question', 'student', 'value', 'weight')
+        fields = ('question_fk', 'user_fk', 'value', 'weight')
+
 
 class QuestionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
@@ -104,10 +111,11 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ('ass_fk', 'text',)
+        fields = ('pk', 'ass_fk', 'text', 'hi', 'lo')
+
 
 # class LFMSerializer(serializers.ModelSerializer):
-#     def create(self, validated_data):
+# def create(self, validated_data):
 #         return LFM.objects.create(**validated_data)
 #
 #     class Meta:
@@ -121,6 +129,7 @@ class LFGSerializer(serializers.ModelSerializer):
     class Meta:
         model = LFG
         fields = ('pk', 'user_fk', 'ass_fk')
+
 
 class NotificationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
