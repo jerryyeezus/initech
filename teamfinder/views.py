@@ -475,6 +475,8 @@ class AnswersView(generics.ListAPIView, generics.DestroyAPIView, generics.Update
                 x.save()
         else:
             # Create it
+            question = Question.objects.get(pk=question)
+            user = User.objects.get(type_and_email=user)
             Answer.objects.create(user_fk=user, weight=weight, value=value, question_fk=question)
         return Response(status=status.HTTP_200_OK)
 
