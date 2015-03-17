@@ -181,7 +181,7 @@ class ConfigState:
 
 
 def goodness(new_teams):
-    return 0
+    return 1
 
 
 class GenAlgorithm():
@@ -456,6 +456,7 @@ class AssignmentList(generics.ListAPIView):
         which_course = self.kwargs['which_course']
         return Assignment.objects.filter(course_fk=which_course)
 
+
 class AnswersView(generics.ListAPIView, generics.DestroyAPIView, generics.UpdateAPIView):
     serializer_class = AnswerSerializer
 
@@ -500,14 +501,16 @@ class AnswersView(generics.ListAPIView, generics.DestroyAPIView, generics.Update
         return Response(serializer.data)
         # return Answer.objects.filter(question_fk=question, user_fk=which_user)
 
-    # def get_queryset(self):
-    #     if 'ass' in self.kwargs:
-    #         question = self.kwargs['question']
-    #         which_user = 'STUDENT|' + self.kwargs['user']
-    #         return Answer.objects.filter(question_fk=question, user_fk=which_user)
+        # def get_queryset(self):
+        # if 'ass' in self.kwargs:
+        #         question = self.kwargs['question']
+        #         which_user = 'STUDENT|' + self.kwargs['user']
+        #         return Answer.objects.filter(question_fk=question, user_fk=which_user)
+
 
 class QuestionDetailView(generics.UpdateAPIView, generics.DestroyAPIView, generics.ListCreateAPIView):
     serializer_class = QuestionSerializer
+
     def update(self, request, *args, **kwargs):
         question = Question.objects.get(pk=kwargs.get('pk'))
         which_action = request.data.get('which_action')
@@ -655,6 +658,7 @@ class AddAssignment(generics.ListCreateAPIView):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentSerializer
 
+
 class AddNotification(generics.ListCreateAPIView, generics.DestroyAPIView):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
@@ -665,11 +669,30 @@ class AddNotification(generics.ListCreateAPIView, generics.DestroyAPIView):
             return Notification.objects.filter(to_user=to)
         return Notification.objects.all()
 
-class AddLFG(generics.ListCreateAPIView, generics.DestroyAPIView):
-    queryset = LFG.objects.all()
+
+class AddLFG(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView):
     serializer_class = LFGSerializer
 
+    def get_queryset(self):
+        if 'pk' in self.kwargs:
+            return LFG.objects.filter(ass_fk=self.kwargs['pk'])
+
+        return LFG.objects.all()
+
+class PutLFG(APIView):
+    def put(self, request):
+        user_fk = request.data.get('user_fk')
+        ass_fk = request.data.get('ass_fk')
+        pk = request.data.get('pk')
+        lfg = LFG.objects.filter(pk=pk)
+        if pk is None or lfg.count() > 0:
+            lfg.delete()
+        else:
+            LFG.objects.create(user_fk=user_fk, ass_fk=ass_fk)
+
+        return Response(status=status.HTTP_200_OK)
+
 # class AddLFM(generics.ListCreateAPIView):
-#     queryset = LFM.objects.all()
+# queryset = LFM.objects.all()
 #     serializer_class = LFMSerializer
 
