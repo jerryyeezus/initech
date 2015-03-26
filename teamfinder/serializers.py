@@ -130,6 +130,13 @@ class LFGSerializer(serializers.ModelSerializer):
         model = LFG
         fields = ('pk', 'user_fk', 'ass_fk')
 
+class ProjectSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        return Project.objects.create(**validated_data)
+
+    class Meta:
+        model = Project
+        fields = ('pk', 'ass_fk', 'name', 'description', 'category')
 
 class NotificationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):

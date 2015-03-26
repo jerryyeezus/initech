@@ -117,13 +117,14 @@ class Project(models.Model):
     name = models.CharField(max_length=24)
 
     # Category (Fill in via clustering methods)
-    category = models.ForeignKey('Thing', related_name='category')
+    # category = models.ForeignKey('Thing', related_name='category', blank=True)
+    category = models.CharField(max_length=24, blank=True)
 
     # Description
     description = models.TextField(blank=False)
 
     # FK to assignment
-    assignment_fk = models.ForeignKey('Assignment')
+    ass_fk = models.ForeignKey('Assignment')
 
     # Tags
     tags = models.ManyToManyField(Thing)
@@ -177,6 +178,12 @@ class Question(models.Model):
     hi = models.CharField(max_length=48)
     def __unicode__(self):
         return self.text
+
+# class Project(models.Model):
+#     ass_fk = models.ForeignKey(Assignment)
+#     name = models.CharField(max_length=24)
+#     description = models.TextField(blank=False)
+
 
 class Answer(models.Model):
     question_fk = models.ForeignKey(Question)

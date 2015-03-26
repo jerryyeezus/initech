@@ -318,6 +318,43 @@ class GenerateTeams(APIView):
         return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
 
 
+# For user and ass, recommend a team
+class TeamRecommend(APIView):
+    def post(self, request):
+        which_assignment = request.data.get('which_assignment')
+        user = request.data.get('user')
+        assignment = Assignment.objects.get(pk=which_assignment)
+        course = Course.objects.get(pk=assignment.course_fk.pk)
+
+        questions = Question.objects.filter(ass_fk=which_assignment)
+        for question in questions:
+            pass
+
+
+class AddProject(APIView):
+    def put(self, request):
+        pk = request.data.get('which_project')
+        project = Project.objects.get(pk=pk)
+
+        # Delete or modify?
+        if request.data.get('action') == 'delete':
+            project.delete()
+        elif request.data.get('action') == 'update':
+            project.description = request.data.get('description')
+            project.name = request.data.get('name')
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ProjectSerializer(data=request.data)
+        if serializer.is_valid():
+            request = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class RequestAdd(APIView):
     def put(self, request):
         pk = request.data.get('which_request')
@@ -457,6 +494,20 @@ class AssignmentList(generics.ListAPIView):
         return Assignment.objects.filter(course_fk=which_course)
 
 
+class ProjectView(generics.ListAPIView, generics.DestroyAPIView, generics.UpdateAPIView):
+    serializer_class = ProjectSerializer
+
+    def get_queryset(self):
+        if 'which_ass' in self.kwargs:
+            return Project.objects.filter(ass_fk=self.kwargs.get('which_ass'))
+        else:
+            return Project.objects.all()
+        # if len(queryset) == 0:
+        #     return Response(status.HTTP_200_OK)
+        # serializer = AnswerSerializer(queryset, many=True)
+        # return Response(serializer.data)
+
+
 class AnswersView(generics.ListAPIView, generics.DestroyAPIView, generics.UpdateAPIView):
     serializer_class = AnswerSerializer
 
@@ -503,7 +554,7 @@ class AnswersView(generics.ListAPIView, generics.DestroyAPIView, generics.Update
 
         # def get_queryset(self):
         # if 'ass' in self.kwargs:
-        #         question = self.kwargs['question']
+        # question = self.kwargs['question']
         #         which_user = 'STUDENT|' + self.kwargs['user']
         #         return Answer.objects.filter(question_fk=question, user_fk=which_user)
 
@@ -679,6 +730,7 @@ class AddLFG(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView):
 
         return LFG.objects.all()
 
+
 class PutLFG(APIView):
     def put(self, request):
         user_fk = request.data.get('user_fk')
@@ -694,5 +746,5 @@ class PutLFG(APIView):
 
 # class AddLFM(generics.ListCreateAPIView):
 # queryset = LFM.objects.all()
-#     serializer_class = LFMSerializer
+# serializer_class = LFMSerializer
 
