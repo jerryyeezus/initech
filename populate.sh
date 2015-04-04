@@ -48,3 +48,6 @@ http -f PUT "$host""add_team/" which_team=2 which_student='STUDENT|yeezy@gatech.
 
 http -f PUT "$host""add_team/" which_team=3 which_student='PLACEHOLDER|joe@gatech.edu' which_action='add' > /dev/null
 
+#questions for students
+
+http -f POST http://localhost:8000/questions/1 ass_fk=1 hi="Very interested" lo="Not interested" text="Are you interested in Web Dev?"
