@@ -114,7 +114,7 @@ http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not intereste
 
 http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Are you interested in front-end design?' > /dev/null
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Are you interested in human-computer interaction?' > /dev/null
+http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Are you interested in data science?' > /dev/null
 
 http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your Java skills?' > /dev/null
 
