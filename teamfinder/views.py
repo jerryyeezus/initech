@@ -1,11 +1,10 @@
 # Create your views here.
+from django.db.models import Q
+import recomender
 from heapq import *
-import json
-from django.db.backends.sqlite3.base import IntegrityError
-from django.http import QueryDict
-import traceback
 import itertools
 from rest_framework.permissions import IsAuthenticated
+import numpy
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import generics
 from django.contrib.auth import authenticate, login, logout
@@ -181,6 +180,10 @@ class ConfigState:
 
 
 def goodness(new_teams):
+    # Compute CF score
+    # for team in new_teams:
+    #     pass
+    # TODO
     return 1
 
 
@@ -324,11 +327,31 @@ class TeamRecommend(APIView):
         which_assignment = request.data.get('which_assignment')
         user = request.data.get('user')
         assignment = Assignment.objects.get(pk=which_assignment)
-        course = Course.objects.get(pk=assignment.course_fk.pk)
 
+        results = {}
+        answer_map = {} # member -> answer vector
         questions = Question.objects.filter(ass_fk=which_assignment)
-        for question in questions:
-            pass
+        for team in assignment.teams.all():
+            user_answer_vector = []
+            for member in team.members.all():
+                for question in questions:
+                    user_answer = Answer.objects.get(question_fk=question, user_fk=user)
+                    if len(user_answer) == 0:
+                        user_answer = None
+                    user_answer_vector.append(user_answer)
+
+                    answer_map[member] = []
+                    # Check if he answered Question, if not put None
+                    his_answer = Answer.objects.filter(question_fk=question, user_fk=member)
+                    if len(his_answer) == 0:
+                        his_answer = None
+                    answer_map[member].append(his_answer)
+            team_score = recomender.cf_map(answer_map, user_answer_vector)
+            results[team] = team_score
+
+
+
+    # TODO recommend ppl too with no group
 
 
 class AddProject(APIView):
