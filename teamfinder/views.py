@@ -331,23 +331,35 @@ class TeamRecommend(APIView):
         results = {}
         answer_map = {} # member -> answer vector
         questions = Question.objects.filter(ass_fk=which_assignment)
+        students_in_teams = []
         for team in assignment.teams.all():
-            user_answer_vector = []
             for member in team.members.all():
+                students_in_teams.append(member)
+                answer_map[member] = []
                 for question in questions:
-                    user_answer = Answer.objects.get(question_fk=question, user_fk=user)
-                    if len(user_answer) == 0:
-                        user_answer = None
-                    user_answer_vector.append(user_answer)
 
-                    answer_map[member] = []
                     # Check if he answered Question, if not put None
                     his_answer = Answer.objects.filter(question_fk=question, user_fk=member)
                     if len(his_answer) == 0:
                         his_answer = None
                     answer_map[member].append(his_answer)
+
+            user_answer_vector = []
+            for question in questions:
+                user_answer = Answer.objects.filter(question_fk=question, user_fk=user)
+                if len(user_answer) == 0:
+                    user_answer = None
+                else:
+                    user_answer = list(user_answer)[0]
+                user_answer_vector.append(user_answer)
             team_score = recomender.cf_map(answer_map, user_answer_vector)
             results[team] = team_score
+
+        course = Course.objects.get(pk=assignment.course_fk.pk)
+        students_left = course.students.all().exclude(type_and_email__in=students_in_teams)
+        print len(course.students.all())
+        print len(students_left)
+        pass
 
 
 
