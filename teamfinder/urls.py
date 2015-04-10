@@ -36,6 +36,7 @@ urlpatterns = [
     url(r'^answer/(?P<question>\d+)/(?P<user>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/$', views.AnswersView.as_view()),
     url(r'^answer/$', views.AnswersView.as_view()),
     url(r'^recommend_team/$', views.TeamRecommend.as_view()),
+    url(r'^recommend_student/$', views.StudentRecommend.as_view()),
 
     # Add project
     url(r'^add_project/$', views.AddProject.as_view()),

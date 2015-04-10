@@ -14,6 +14,12 @@ class ThingSerializer(serializers.ModelSerializer):
         model = Thing
         fields = ('name')
 
+class StudentRecommendationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('name', 'email', 'user_type', 'dept', 'gpa', 'bio', 'project_pref',
+                  'interests', 'linkedin', 'github', 'profile_img', 'score')
 
 class UserAccountSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -67,12 +73,16 @@ class TeamSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     def create(self, validated_data):
-        return Course.objects.create(**validated_data)
+        return Team.objects.create(**validated_data)
 
     class Meta:
         model = Team
         fields = ('pk', 'name', 'number', 'members', 'description', 'lfm')
 
+class TeamRecommendationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ('pk', 'name', 'number', 'members', 'description', 'lfm', 'score')
 
 class JoinRequestSerializer(serializers.ModelSerializer):
     # members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

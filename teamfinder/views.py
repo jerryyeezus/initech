@@ -321,6 +321,48 @@ class GenerateTeams(APIView):
         return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
 
 
+# For user and ass, recommend a user with no team
+class StudentRecommend(APIView):
+    def post(self, request):
+        which_assignment = request.data.get('which_assignment')
+        user = request.data.get('user')
+        assignment = Assignment.objects.get(pk=which_assignment)
+        students_in_teams = []
+        course = assignment.course_fk
+        for team in assignment.teams.all():
+            for member in team.members.all():
+                students_in_teams.append(member)
+        user_answer_vector = []
+        questions = Question.objects.filter(ass_fk=assignment)
+        for question in questions:
+            user_answer = Answer.objects.filter(question_fk=question, user_fk=user)
+            if len(user_answer) == 0:
+                user_answer = None
+            else:
+                user_answer = list(user_answer)[0]
+            user_answer_vector.append(user_answer)
+
+        students_left = course.students.all().exclude(type_and_email__in=students_in_teams)
+        results = {}
+        for student in students_left:
+            answer_map = {student: []}
+            for question in questions:
+                # Check if he answered Question, if not put None
+                his_answer = Answer.objects.filter(question_fk=question, user_fk=student)
+                if len(his_answer) == 0:
+                    his_answer = None
+                answer_map[student].append(his_answer)
+            results[student] = recomender.cf_map(answer_map, user_answer_vector)
+
+        recommendations = [x for x in sorted(results, key=results.get, reverse=True)][:5]
+        pk_list = [x.pk for x in recommendations]
+        queryset = User.objects.filter(pk__in=pk_list)
+        for student in queryset:
+            student.score = results[student]
+
+        ser = StudentRecommendationSerializer(queryset, many=True)
+        return Response(ser.data)
+
 # For user and ass, recommend a team
 class TeamRecommend(APIView):
     def post(self, request):
@@ -329,10 +371,10 @@ class TeamRecommend(APIView):
         assignment = Assignment.objects.get(pk=which_assignment)
 
         results = {}
-        answer_map = {} # member -> answer vector
         questions = Question.objects.filter(ass_fk=which_assignment)
         students_in_teams = []
         for team in assignment.teams.all():
+            answer_map = {} # member -> answer vector
             for member in team.members.all():
                 students_in_teams.append(member)
                 answer_map[member] = []
@@ -353,18 +395,20 @@ class TeamRecommend(APIView):
                     user_answer = list(user_answer)[0]
                 user_answer_vector.append(user_answer)
             team_score = recomender.cf_map(answer_map, user_answer_vector)
+            team.score = team_score
             results[team] = team_score
 
-        course = Course.objects.get(pk=assignment.course_fk.pk)
-        students_left = course.students.all().exclude(type_and_email__in=students_in_teams)
-        print len(course.students.all())
-        print len(students_left)
-        pass
+        recommendations = [x for x in sorted(results, key=results.get, reverse=True)]
+        scores = sorted(results.values(), reverse=True)
+        pk_list = [x.pk for x in recommendations]
+        clauses = ' '.join(['WHEN id=%s THEN %s' % (pk, i) for i, pk in enumerate(pk_list)])
+        ordering = 'CASE %s END' % clauses
+        queryset = Team.objects.filter(pk__in=pk_list).extra(select={'ordering': ordering}, order_by=('ordering',))
+        for i, team in enumerate(queryset):
+            team.score = scores[i]
 
-
-
-    # TODO recommend ppl too with no group
-
+        ser = TeamRecommendationSerializer(queryset, many=True)
+        return Response(ser.data)
 
 class AddProject(APIView):
     def put(self, request):

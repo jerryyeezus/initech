@@ -48,6 +48,7 @@ class User(AbstractBaseUser):
     type_and_email = models.CharField(primary_key=True, max_length=64, unique=True)
     objects = AccountManager()
     skills_str = models.CharField(max_length=256, unique=False, blank=True)
+    score = models.FloatField(blank=True, null=True)
 
     USERNAME_FIELD = 'type_and_email'
     REQUIRED_FIELDS = ['username', 'user_type']
@@ -145,9 +146,14 @@ class Team(models.Model):
 
     lfm = models.BooleanField(blank=True, default=False)
 
+    score = models.FloatField(null=True, blank=True)
     # TODO skills needed?
     def __unicode__(self):
         return self.name
+
+# class TeamRecommendation(models.Model):
+#     team_fk = models.ForeignKey(Team)
+#     compat_score = models.IntegerField()
 
 class JoinRequest(models.Model):
     requester = models.ForeignKey(User)
@@ -176,6 +182,7 @@ class Question(models.Model):
     text = models.CharField(max_length=48)
     lo = models.CharField(max_length=48)
     hi = models.CharField(max_length=48)
+    type = models.CharField(max_length=48, blank=True)
     def __unicode__(self):
         return self.text
 
