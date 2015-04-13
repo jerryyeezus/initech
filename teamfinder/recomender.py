@@ -18,10 +18,12 @@ def cf_map(team_answers_map, my_answer_vec):
     my_answer_vec = [0 if x is None else x.value for x in my_answer_vec]
     best = [5] * len(my_answer_vec);
     worst = [0] * len(my_answer_vec);
-    baseline = math.sqrt(sum((best[k] - worst[k])** 2 for k in range(len(my_answer_vec))))
-    return 100 * round(1-math.sqrt(sum((my_answer_vec[k] - result[k])** 2 for k in range(len(my_answer_vec))))/baseline, 3)
+    baseline = math.sqrt(sum((best[k] - worst[k]) ** 2 for k in range(len(my_answer_vec))))
+    return 100 * round(
+        1 - math.sqrt(sum((my_answer_vec[k] - result[k]) ** 2 for k in range(len(my_answer_vec)))) / baseline, 3)
 
     # return numpy.cov(result, my_answer_vec)[0, 1] # higher iz better
+
 
 # Return average pearson covariance between team members given a team
 def cf(teams):

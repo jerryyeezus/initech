@@ -343,6 +343,10 @@ class StudentRecommend(APIView):
             user_answer_vector.append(user_answer)
 
         students_left = course.students.all().exclude(type_and_email__in=students_in_teams)
+        if len(questions) == 0:
+            students_left = students_left[:10]
+            return Response(StudentRecommendationSerializer(students_left, many=True).data)
+
         results = {}
         for student in students_left:
             answer_map = {student: []}
