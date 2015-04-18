@@ -7,14 +7,16 @@ PLACEHOLDER = 'PLACEHOLDER'
 
 
 class AccountManager(BaseUserManager):
-    def create_user(self, email, user_type, name='', password=None, **kwargs):
+    def create_user(self, email, user_type, name='', skills_str='', password=None, **kwargs):
         if not email:
             raise ValueError('No email supplied')
 
+        # You need to add shit to here or it won't be saved... gg django
         account = self.model(
             email=self.normalize_email(email),
             user_type=user_type,
             type_and_email=user_type + '|' + email,
+            skills_str=skills_str
         )
 
         account.name = name
