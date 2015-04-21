@@ -86,7 +86,7 @@ class AddTeam(APIView):
     def post(self, request):
         which_assignment = request.data.get('which_assignment')
         team_name = request.data.get('team_name')
-        team_description = request.data.get('team_name')
+        team_description = request.data.get('team_description')
         if team_description is None:
             team_description = ''
 
