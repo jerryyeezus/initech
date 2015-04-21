@@ -116,6 +116,8 @@ class Course(models.Model):
         return self.course_dept_and_id
 
 class Project(models.Model):
+    def __unicode__(self):
+        return self.name
     # Name
     name = models.CharField(max_length=24)
 
@@ -149,6 +151,10 @@ class Team(models.Model):
     lfm = models.BooleanField(blank=True, default=False)
 
     score = models.FloatField(null=True, blank=True)
+
+    project_pref = models.ManyToManyField(Project, null=True, blank=True)
+
+    skills_needed = models.CharField(max_length=256, unique=False, blank=True)
     # TODO skills needed?
     def __unicode__(self):
         return self.name

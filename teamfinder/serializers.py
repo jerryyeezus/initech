@@ -14,12 +14,13 @@ class ThingSerializer(serializers.ModelSerializer):
         model = Thing
         fields = ('name')
 
-class StudentRecommendationSerializer(serializers.ModelSerializer):
 
+class StudentRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('name', 'email', 'user_type', 'dept', 'gpa', 'bio', 'project_pref',
                   'interests', 'linkedin', 'github', 'profile_img', 'score')
+
 
 class UserAccountSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -69,20 +70,29 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ('csv_import', 'course_dept_and_id', 'course_name', 'course_professor', 'students', 'pk')
 
 
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ('pk','name', 'description')
+
+
 class TeamSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    project_pref = ProjectSerializer(many=True)
 
     def create(self, validated_data):
         return Team.objects.create(**validated_data)
 
     class Meta:
         model = Team
-        fields = ('pk', 'name', 'number', 'members', 'description', 'lfm')
+        fields = ('pk', 'name', 'number', 'members', 'description', 'lfm', 'project_pref', 'skills_needed')
+
 
 class TeamRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = ('pk', 'name', 'number', 'members', 'description', 'lfm', 'score')
+
 
 class JoinRequestSerializer(serializers.ModelSerializer):
     # members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
@@ -126,7 +136,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 # class LFMSerializer(serializers.ModelSerializer):
 # def create(self, validated_data):
-#         return LFM.objects.create(**validated_data)
+# return LFM.objects.create(**validated_data)
 #
 #     class Meta:
 #         model = LFM
@@ -140,6 +150,7 @@ class LFGSerializer(serializers.ModelSerializer):
         model = LFG
         fields = ('pk', 'user_fk', 'ass_fk')
 
+
 class ProjectSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Project.objects.create(**validated_data)
@@ -147,6 +158,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ('pk', 'ass_fk', 'name', 'description', 'category')
+
 
 class NotificationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):

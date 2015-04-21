@@ -67,6 +67,10 @@ class AddTeam(APIView):
                 team.description = field_value
             if which_field == 'lfm':
                 team.lfm = field_value
+            if which_field == 'project_pref':
+                team.project_pref = field_value # TODO may need more
+            if which_field == 'skills_needed':
+                team.skills_needed = field_value
             team.save()
             # return Response(serializers.serialize('json', team), status=status.HTTP_201_CREATED)
             return Response(status=status.HTTP_200_OK)
@@ -812,6 +816,15 @@ class AddLFG(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView):
             return LFG.objects.filter(ass_fk=self.kwargs['pk'])
 
         return LFG.objects.all()
+
+class PutProjectPref(APIView):
+    def put(self, request):
+        team = Team.objects.get(pk=request.data.get('which_team'))
+        project = request.data.get('which_project')
+        project = Project.objects.get(pk=project)
+        team.project_pref.add(project)
+        team.save()
+        return Response(status=status.HTTP_200_OK)
 
 
 class PutLFG(APIView):

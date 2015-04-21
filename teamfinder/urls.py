@@ -37,6 +37,7 @@ urlpatterns = [
     url(r'^answer/$', views.AnswersView.as_view()),
     url(r'^recommend_team/$', views.TeamRecommend.as_view()),
     url(r'^recommend_student/$', views.StudentRecommend.as_view()),
+    url(r'^add_project_pref/$', views.PutProjectPref.as_view()),
 
     # Add project
     url(r'^add_project/$', views.AddProject.as_view()),
