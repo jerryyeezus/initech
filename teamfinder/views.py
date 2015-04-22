@@ -381,30 +381,33 @@ class TeamRecommend(APIView):
         results = {}
         questions = Question.objects.filter(ass_fk=which_assignment)
         students_in_teams = []
+        user_answer_vector = []
+        # was in inner loop
+        for question in questions:
+            user_answer = Answer.objects.filter(question_fk=question, user_fk=user)
+            if len(user_answer) == 0:
+                user_answer = None
+            else:
+                user_answer = list(user_answer)[0]
+            user_answer_vector.append(user_answer)
         for team in assignment.teams.all():
             answer_map = {} # member -> answer vector
             for member in team.members.all():
                 students_in_teams.append(member)
                 answer_map[member] = []
                 for question in questions:
-
                     # Check if he answered Question, if not put None
                     his_answer = Answer.objects.filter(question_fk=question, user_fk=member)
                     if len(his_answer) == 0:
                         his_answer = None
                     answer_map[member].append(his_answer)
 
-            user_answer_vector = []
-            for question in questions:
-                user_answer = Answer.objects.filter(question_fk=question, user_fk=user)
-                if len(user_answer) == 0:
-                    user_answer = None
-                else:
-                    user_answer = list(user_answer)[0]
-                user_answer_vector.append(user_answer)
-            team_score = recomender.cf_map(answer_map, user_answer_vector)
-            team.score = team_score
-            results[team] = team_score
+            if len(answer_map) > 0:
+                team_score = recomender.cf_map(answer_map, user_answer_vector)
+                team.score = team_score
+                results[team] = team_score
+            else:
+                results[team] = 0.0
 
         recommendations = [x for x in sorted(results, key=results.get, reverse=True)]
         scores = sorted(results.values(), reverse=True)
