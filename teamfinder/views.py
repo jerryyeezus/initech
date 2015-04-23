@@ -293,6 +293,13 @@ class GenAlgorithm():
             #     return None
         return current
 
+class ComparableTeam():
+    def __init__(self, team):
+        self.team = team
+    def __lt__(self, other):
+        return self.team.members.count() < other.team.members.count()
+    def __eq__(self, other):
+        return self.team.members.count() == other.team.members.count()
 
 class GenerateTeams(APIView):
     def post(self, request):
@@ -317,7 +324,7 @@ class GenerateTeams(APIView):
 	matching_teams = list(teams)
 	assigned_teams = []
 	for teamIndex, team in enumerate(matching_teams):
-		teamsPQ.put(team)
+		teamsPQ.put(ComparableTeam(team))
 		assigned_teams.append(team)
 	while len(available.keys()) > 0:
 	    found_team = False
@@ -325,17 +332,17 @@ class GenerateTeams(APIView):
 
 	    while not teamsPQ.empty() and len(available.keys())>0:
                	potential_team = teamsPQ.get()
-		if potential_team.members.count() < 4:
+		if potential_team.team.members.count() < 4:
 		    new_team_member = available.keys()[0]
 		    new_team_member.lfg = False
-		    potential_team.members.add(new_team_member)
-	 	    potential_team.save()
+		    potential_team.team.members.add(new_team_member)
+	 	    potential_team.team.save()
 		    del available[new_team_member]
 		    found_team = True
-		if potential_team.members.count() < 4:
+		if potential_team.team.members.count() < 4:
 		    teamsPQ.put(potential_team)
 		else:
-		    assigned_teams.append(potential_team)
+		    assigned_teams.append(potential_team.team)
 	    
 	    if not found_team:
 	        team_captain = available.keys()[0]
@@ -347,12 +354,12 @@ class GenerateTeams(APIView):
                 assignment.teams.add(new_team)
 		assignment.save()
 		matching_teams.append(new_team)
-		teamsPQ.put(new_team)
+		teamsPQ.put(ComparableTeam(new_team))
 		del available[team_captain]
 
 	while not teamsPQ.empty():
 	    team = teamsPQ.get()
-            assigned_teams.append(team)
+            assigned_teams.append(team.team)
  
 	"""
 	algo = GenAlgorithm(available.keys(), teams)
