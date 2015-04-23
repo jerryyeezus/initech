@@ -302,12 +302,46 @@ class GenerateTeams(APIView):
 
         # Remove students that have a team. Fill in (members, team) into tuple array as well.
         teams = assignment.teams.all()
-        for team in teams:
+	for team in teams:
             for member in team.members.all():
-                del available[member]
+                if member in available:
+		    del available[member]
+        total_teams = len(teams)
+	matching_teams = list(teams)
+	while len(available.keys()) > 0:
+	    found_team = False
+            team_full = []
+	    for teamIndex, team in enumerate(matching_teams):
+	        while matching_teams[teamIndex].members.count() < 4:
+		    new_team_member = available.keys()[0]
+		    new_team_member.lfg = False
+		    matching_teams[teamIndex].members.add(new_team_member)
+	 	    del available[new_team_member]
+		    if len(available.keys()) <= 0:
+                        break			
+		    found_team = True
+		if len(available.keys()) <= 0:
+		    break
+                if team.members.count() == 4:
+		    team_full.append(team)
+            #for index, team in enumerate(team_full):
+            #    del matching_teams[index]
+	    if not found_team:
+	        team_captain = available.keys()[0]
+                team_captain.lfg = False
+		total_teams += 1
+                new_team = Team.objects.create(name=team_captain.email, number=total_teams, description="New Team")
+                new_team.members.add(team_captain)
+                new_team.save()
+                assignment.teams.add(new_team)
+		assignment.save()
+		matching_teams.append(new_team)
+		del available[team_captain]
 
-        algo = GenAlgorithm(available.keys(), teams)
-        result = algo.search()
+
+	"""
+	algo = GenAlgorithm(available.keys(), teams)
+	result = algo.search()
         if result is None:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -322,8 +356,8 @@ class GenerateTeams(APIView):
             assignment.teams.add(new_django_team)
             assignment.save()
         teams = assignment.teams.all()
-        return Response(serializers.serialize('json', teams), status=status.HTTP_201_CREATED)
-
+        """
+	return Response(serializers.serialize('json', matching_teams), status=status.HTTP_201_CREATED)
 
 # For user and ass, recommend a user with no team
 class StudentRecommend(APIView):
