@@ -206,11 +206,12 @@ class GenAlgorithm():
         teams = copy.deepcopy(cstate.teams)
         available = cstate.available
 
+        did_reduce = False
         # Add reduce states (Combining group)
         for i, j in itertools.combinations(range(len(teams)), 2):
+            if len(teams[i].members) + len(teams[j].members) > 5:
+                continue
             # Merge team[i] and team[j]
-            # new_teams = teams[:]  # make copy of it
-            # Make deep copy brah
             new_teams = copy.deepcopy(teams)
             for x, team in enumerate(new_teams):
                 team.members = copy.deepcopy(teams[x].members)
@@ -225,10 +226,30 @@ class GenAlgorithm():
                                     prev_action='reduce', node_id=self.node_id)
             children.append(new_state)
 
+        if len(teams) > 1:
+            did_reduce = True
+
+        did_shift = False
+        # Add shift states
+        if len(teams) > 0 and len(cstate.available) > 0:
+            did_shift = True
+            next_student = cstate.available[0]
+            del cstate.available[0]
+            for i in range(len(teams)):
+                new_teams = copy.deepcopy(teams)
+                for x, team in enumerate(new_teams):
+                    team.members = copy.deepcopy(teams[x].members)
+                new_teams[i].members.append(next_student)
+                self.node_id += 1
+                new_g = state[0] + 1
+                new_state = ConfigState(cstate.available, new_teams, django=False, g=new_g, parent=cstate.node_id,
+                                        prev_action='shift ' + next_student.type_and_email, node_id=self.node_id)
+                children.append(new_state)
+
         # Add create state
         # only create if teams less than students / 4
         # could be none avail
-        if len(teams) < (self.num_students / TEAM_MIN) / 2 + 1 and len(cstate.available) > 0:
+        if not did_reduce and not did_shift:
             next_student = cstate.available[0]
             new_available = cstate.available[1:]
             new_teams = copy.deepcopy(teams)
@@ -239,21 +260,6 @@ class GenAlgorithm():
             new_state = ConfigState(new_available, new_teams, django=False, g=new_g, parent=cstate.node_id,
                                     prev_action='create', node_id=self.node_id)
             children.append(new_state)
-
-        # Add shift states
-        if len(teams) > 0 and len(cstate.available) > 0:
-            next_student = cstate.available[0]
-            del cstate.available[0]
-            for i in range(len(teams)):
-                new_teams = copy.deepcopy(teams)
-                for x, team in enumerate(new_teams):
-                    team.members = copy.deepcopy(teams[x].members)
-                new_teams[i].members.append(next_student)
-                self.node_id += 1
-                new_g = state[0] + goodness(new_teams)
-                new_state = ConfigState(cstate.available, new_teams, django=False, g=new_g, parent=cstate.node_id,
-                                        prev_action='shift ' + next_student.type_and_email, node_id=self.node_id)
-                children.append(new_state)
 
         return children
 
@@ -272,20 +278,19 @@ class GenAlgorithm():
         i = 0
         heappush(frontier, (i, self.initState))
         while True:
-            try:
-                current = heappop(frontier)
-                if self.is_goal(current) or current[0] > 8:
-                    self.is_goal(current)
-                    # print current[1].__unicode__
-                    break
-                # Append children
-                children = self.get_children(current)
-                for child in children:
-                    heappush(frontier, (child.g, child))
-            except Exception as exc:
-                print exc.message
-                self.get_children(current)
-                return None
+            current = heappop(frontier)
+            if self.is_goal(current):
+                # self.is_goal(current)
+                # print current[1].__unicode__
+                break
+            # Append children
+            children = self.get_children(current)
+            for child in children:
+                heappush(frontier, (child.g, child))
+            # except Exception as exc:
+            #     print exc.message
+            #     self.get_children(current)
+            #     return None
         return current
 
 
