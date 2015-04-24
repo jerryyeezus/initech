@@ -81,57 +81,64 @@ http -f POST "$host""add_import/" import_csv@roster.csv pk=2 > /dev/null
 http -f POST "$host""add_assignment/" assignment_number=1 course_fk=2 > /dev/null
 
 http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
-
+http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
+http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
+http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
+http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
 http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
 
-http -f POST "$host""add_team/" which_assignment=1 owner='INSTRUCTOR|you@gatech.edu'> /dev/null
 
 http -f PUT "$host""add_team/" which_team=1 which_student='STUDENT|thang@gatech.edu' which_action='add' > /dev/null
-
 http -f PUT "$host""add_team/" which_team=1 which_student='STUDENT|fuccboi@gatech.edu' which_action='add' > /dev/null
 
 http -f PUT "$host""add_team/" which_team=2 which_student='STUDENT|yeezy@gatech.edu' which_action='add' > /dev/null
+http -f PUT "$host""add_team/" which_team=2 which_student='STUDENT|sam@gatech.edu' which_action='add' > /dev/null
+http -f PUT "$host""add_team/" which_team=2 which_student='STUDENT|mccartney@gatech.edu' which_action='add' > /dev/null
+
+http -f PUT "$host""add_team/" which_team=2 which_student='STUDENT|john@gatech.edu' which_action='add' > /dev/null
+http -f PUT "$host""add_team/" which_team=2 which_student='STUDENT|bieber@gatech.edu' which_action='add' > /dev/null
+
+http -f PUT "$host""add_team/" which_team=3 which_student='STUDENT|walker@gatech.edu' which_action='add' > /dev/null
+
+http -f PUT "$host""add_team/" which_team=4 which_student='STUDENT|lohan@gatech.edu' which_action='add' > /dev/null
+http -f PUT "$host""add_team/" which_team=4 which_student='STUDENT|lin@gatech.edu' which_action='add' > /dev/null
+http -f PUT "$host""add_team/" which_team=4 which_student='STUDENT|garrick@gatech.edu' which_action='add' > /dev/null
+
+http -f PUT "$host""add_team/" which_team=5 which_student='STUDENT|meuter@gatech.edu' which_action='add' > /dev/null
+
+http -f PUT "$host""add_team/" which_team=6 which_student='STUDENT|pendley@gatech.edu' which_action='add' > /dev/null
 
 
 
 #questions for students
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Are you interested in web development?' > /dev/null
+http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Interest in web development?' > /dev/null
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Are you interested in app development?' > /dev/null
+http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Interest in app development?' > /dev/null
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Are you interested in data management?' > /dev/null
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Are you interested in front-end design?' > /dev/null
 
 http -f POST "$host""questions/" ass_fk=1 hi='Very interested' lo='Not interested' text='Are you interested in data science?' > /dev/null
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your Java skills?' > /dev/null
+http -f POST "$host""questions/" ass_fk=1 hi='Agile' lo='Scrum' text='Methodology preference?' > /dev/null
+http -f POST "$host""questions/" ass_fk=1 hi='Regular meetup' lo='Remote work' text='Mode of working?' > /dev/null
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your HTML skills?' > /dev/null
+#http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your Java skills?' > /dev/null
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your C skills?' > /dev/null
+#http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your HTML skills?' > /dev/null
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your PHP skills?' > /dev/null
+#http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your C skills?' > /dev/null
 
-http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your Angular skills?' > /dev/null
+#http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your PHP skills?' > /dev/null
+
+#http -f POST "$host""questions/" ass_fk=1 hi='Very good' lo='Not good' text='How are your Angular skills?' > /dev/null
 
 #answers for students
-
-http -f PUT "$host""answer/1/thang@gatech.edu/" question_fk=1 user_fk="STUDENT|thang@gatech.edu" value=2 weight=1 > /dev/null
-http -f PUT "$host""answer/2/thang@gatech.edu/" question_fk=2 user_fk="STUDENT|thang@gatech.edu" value=3 weight=1 > /dev/null
-http -f PUT "$host""answer/3/thang@gatech.edu/" question_fk=3 user_fk="STUDENT|thang@gatech.edu" value=2 weight=1 > /dev/null
-http -f PUT "$host""answer/4/thang@gatech.edu/" question_fk=4 user_fk="STUDENT|thang@gatech.edu" value=4 weight=1 > /dev/null
-http -f PUT "$host""answer/6/thang@gatech.edu/" question_fk=6 user_fk="STUDENT|thang@gatech.edu" value=5 weight=1 > /dev/null
-http -f PUT "$host""answer/7/thang@gatech.edu/" question_fk=7 user_fk="STUDENT|thang@gatech.edu" value=2 weight=1 > /dev/null
-http -f PUT "$host""answer/8/thang@gatech.edu/" question_fk=8 user_fk="STUDENT|thang@gatech.edu" value=1 weight=1 > /dev/null
-http -f PUT "$host""answer/9/thang@gatech.edu/" question_fk=9 user_fk="STUDENT|thang@gatech.edu" value=2 weight=1 > /dev/null
-http -f PUT "$host""answer/10/thang@gatech.edu/" question_fk=10 user_fk="STUDENT|thang@gatech.edu" value=1 weight=1 > /dev/null
 
 http -f PUT "$host""answer/1/fuccboi@gatech.edu/" question_fk=1 user_fk="STUDENT|fuccboi@gatech.edu" value=2 weight=1 > /dev/null
 
 http -f PUT "$host""answer/1/yeezy@gatech.edu/" question_fk=1 user_fk="STUDENT|yeezy@gatech.edu" value=5 weight=1 > /dev/null
-http -f PUT "$host""answer/2/yeezy@gatech.edu/" question_fk=2 user_fk="STUDENT|yeezy@gatech.edu" value=1 weight=1 > /dev/null
+#http -f PUT "$host""answer/2/yeezy@gatech.edu/" question_fk=2 user_fk="STUDENT|yeezy@gatech.edu" value=1 weight=1 > /dev/null
 http -f PUT "$host""answer/3/yeezy@gatech.edu/" question_fk=3 user_fk="STUDENT|yeezy@gatech.edu" value=4 weight=1 > /dev/null
 http -f PUT "$host""answer/5/yeezy@gatech.edu/" question_fk=5 user_fk="STUDENT|yeezy@gatech.edu" value=1 weight=1 > /dev/null
 http -f PUT "$host""answer/6/yeezy@gatech.edu/" question_fk=6 user_fk="STUDENT|yeezy@gatech.edu" value=1 weight=1 > /dev/null
@@ -143,7 +150,7 @@ http -f PUT "$host""answer/10/yeezy@gatech.edu/" question_fk=10 user_fk="STUDENT
 
 
 http -f PUT "$host""answer/1/mccartney@gatech.edu/" question_fk=1 user_fk="STUDENT|mccartney@gatech.edu" value=5 weight=1 > /dev/null
-http -f PUT "$host""answer/2/mccartney@gatech.edu/" question_fk=2 user_fk="STUDENT|mccartney@gatech.edu" value=3 weight=1 > /dev/null
+#http -f PUT "$host""answer/2/mccartney@gatech.edu/" question_fk=2 user_fk="STUDENT|mccartney@gatech.edu" value=3 weight=1 > /dev/null
 http -f PUT "$host""answer/3/mccartney@gatech.edu/" question_fk=3 user_fk="STUDENT|mccartney@gatech.edu" value=1 weight=1 > /dev/null
 http -f PUT "$host""answer/4/mccartney@gatech.edu/" question_fk=4 user_fk="STUDENT|mccartney@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/5/mccartney@gatech.edu/" question_fk=5 user_fk="STUDENT|mccartney@gatech.edu" value=1 weight=1 > /dev/null
@@ -159,7 +166,7 @@ http -f PUT "$host""answer/8/harrison@gatech.edu/" question_fk=8 user_fk="STUDEN
 http -f PUT "$host""answer/9/harrison@gatech.edu/" question_fk=9 user_fk="STUDENT|harrison@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/10/harrison@gatech.edu/" question_fk=10 user_fk="STUDENT|harrison@gatech.edu" value=4 weight=1 > /dev/null
 
-http -f PUT "$host""answer/1/john@gatech.edu/" question_fk=1 user_fk="STUDENT|john@gatech.edu" value=3 weight=1 > /dev/null
+#http -f PUT "$host""answer/1/john@gatech.edu/" question_fk=1 user_fk="STUDENT|john@gatech.edu" value=3 weight=1 > /dev/null
 http -f PUT "$host""answer/2/john@gatech.edu/" question_fk=2 user_fk="STUDENT|john@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/3/john@gatech.edu/" question_fk=3 user_fk="STUDENT|john@gatech.edu" value=1 weight=1 > /dev/null
 http -f PUT "$host""answer/4/john@gatech.edu/" question_fk=4 user_fk="STUDENT|john@gatech.edu" value=1 weight=1 > /dev/null
@@ -174,7 +181,7 @@ http -f PUT "$host""answer/10/john@gatech.edu/" question_fk=10 user_fk="STUDENT|
 http -f PUT "$host""answer/1/lewis@gatech.edu/" question_fk=1 user_fk="STUDENT|lewis@gatech.edu" value=4 weight=1 > /dev/null
 http -f PUT "$host""answer/2/lewis@gatech.edu/" question_fk=2 user_fk="STUDENT|lewis@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/3/lewis@gatech.edu/" question_fk=3 user_fk="STUDENT|lewis@gatech.edu" value=3 weight=1 > /dev/null
-http -f PUT "$host""answer/4/lewis@gatech.edu/" question_fk=4 user_fk="STUDENT|lewis@gatech.edu" value=2 weight=1 > /dev/null
+#http -f PUT "$host""answer/4/lewis@gatech.edu/" question_fk=4 user_fk="STUDENT|lewis@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/5/lewis@gatech.edu/" question_fk=5 user_fk="STUDENT|lewis@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/6/lewis@gatech.edu/" question_fk=6 user_fk="STUDENT|lewis@gatech.edu" value=4 weight=1 > /dev/null
 http -f PUT "$host""answer/7/lewis@gatech.edu/" question_fk=7 user_fk="STUDENT|lewis@gatech.edu" value=5 weight=1 > /dev/null
@@ -182,9 +189,9 @@ http -f PUT "$host""answer/8/lewis@gatech.edu/" question_fk=8 user_fk="STUDENT|l
 http -f PUT "$host""answer/9/lewis@gatech.edu/" question_fk=9 user_fk="STUDENT|lewis@gatech.edu" value=1 weight=1 > /dev/null
 http -f PUT "$host""answer/10/lewis@gatech.edu/" question_fk=10 user_fk="STUDENT|lewis@gatech.edu" value=1 weight=1 > /dev/null
 
-http -f PUT "$host""answer/1/myers@gatech.edu/" question_fk=1 user_fk="STUDENT|myers@gatech.edu" value=3 weight=1 > /dev/null
-http -f PUT "$host""answer/2/myers@gatech.edu/" question_fk=2 user_fk="STUDENT|myers@gatech.edu" value=3 weight=1 > /dev/null
-http -f PUT "$host""answer/3/myers@gatech.edu/" question_fk=3 user_fk="STUDENT|myers@gatech.edu" value=2 weight=1 > /dev/null
+#http -f PUT "$host""answer/1/myers@gatech.edu/" question_fk=1 user_fk="STUDENT|myers@gatech.edu" value=3 weight=1 > /dev/null
+#http -f PUT "$host""answer/2/myers@gatech.edu/" question_fk=2 user_fk="STUDENT|myers@gatech.edu" value=3 weight=1 > /dev/null
+#http -f PUT "$host""answer/3/myers@gatech.edu/" question_fk=3 user_fk="STUDENT|myers@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/4/myers@gatech.edu/" question_fk=4 user_fk="STUDENT|myers@gatech.edu" value=4 weight=1 > /dev/null
 http -f PUT "$host""answer/5/myers@gatech.edu/" question_fk=5 user_fk="STUDENT|myers@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/6/myers@gatech.edu/" question_fk=6 user_fk="STUDENT|myers@gatech.edu" value=5 weight=1 > /dev/null
@@ -196,7 +203,7 @@ http -f PUT "$host""answer/10/myers@gatech.edu/" question_fk=10 user_fk="STUDENT
 http -f PUT "$host""answer/1/diesel@gatech.edu/" question_fk=1 user_fk="STUDENT|diesel@gatech.edu" value=5 weight=1 > /dev/null
 http -f PUT "$host""answer/2/diesel@gatech.edu/" question_fk=2 user_fk="STUDENT|diesel@gatech.edu" value=3 weight=1 > /dev/null
 http -f PUT "$host""answer/3/diesel@gatech.edu/" question_fk=3 user_fk="STUDENT|diesel@gatech.edu" value=3 weight=1 > /dev/null
-http -f PUT "$host""answer/4/diesel@gatech.edu/" question_fk=4 user_fk="STUDENT|diesel@gatech.edu" value=2 weight=1 > /dev/null
+#http -f PUT "$host""answer/4/diesel@gatech.edu/" question_fk=4 user_fk="STUDENT|diesel@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/5/diesel@gatech.edu/" question_fk=5 user_fk="STUDENT|diesel@gatech.edu" value=2 weight=1 > /dev/null
 http -f PUT "$host""answer/6/diesel@gatech.edu/" question_fk=6 user_fk="STUDENT|diesel@gatech.edu" value=3 weight=1 > /dev/null
 http -f PUT "$host""answer/7/diesel@gatech.edu/" question_fk=7 user_fk="STUDENT|diesel@gatech.edu" value=5 weight=1 > /dev/null
