@@ -89,6 +89,7 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 class TeamRecommendationSerializer(serializers.ModelSerializer):
+    members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = Team
         fields = ('pk', 'name', 'number', 'members', 'description', 'lfm', 'score')
